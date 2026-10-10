@@ -28,23 +28,10 @@ function classicInlineScript() {
 
 export default defineConfig({
   base: './',
-  plugins: [
-    {
-      name: 'serve-kitten-cannon',
-      configureServer(server) {
-        server.middlewares.use((req, _res, next) => {
-          const url = req.url || '';
-          if (url === '/' || url.startsWith('/?')) req.url = '/kitten_cannon.html' + url.slice(1);
-          next();
-        });
-      },
-    },
-    viteSingleFile(),
-    classicInlineScript(),
-  ],
+  plugins: [viteSingleFile(), classicInlineScript()],
   build: {
     rollupOptions: {
-      input: resolve(root, 'kitten_cannon.html'),
+      input: resolve(root, 'index.html'),
     },
   },
   server: { port: 5173, strictPort: false },

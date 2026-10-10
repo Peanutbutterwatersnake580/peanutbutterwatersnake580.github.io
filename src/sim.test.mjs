@@ -152,6 +152,34 @@ function shot(angle, power, props, frames = 30 * 60) {
   assert.equal(k.cause, 'venus');
 }
 
+// Tumble rate follows the flight. Horizontal speed stays flat on a clean arc,
+// so a rate taken only from vx would not move. The top hangs. The dive whirls.
+// A bomb kicks it faster still.
+{
+  const k = createKitten(32, POWER_MAX);
+  let calm = Infinity;
+  let dive = 0;
+  while (!k.dead && k.frame < 80) {
+    step(k, []);
+    if (k.dead) break;
+    if (Math.abs(k.vy) < 4 && k.y > 400) calm = Math.min(calm, Math.abs(k.turn));
+    if (k.vy < -22) dive = Math.max(dive, Math.abs(k.turn));
+  }
+  assert.ok(dive > 0, 'the shot should be falling fast before the first landing');
+  assert.ok(calm < dive * 0.45, `apex tumble ${calm.toFixed(2)} should be much slower than the dive ${dive.toFixed(2)}`);
+
+  const bomb = createKitten(20, 40);
+  bomb.frame = 20;
+  bomb.x = 100;
+  bomb.y = 80;
+  bomb.vx = 30;
+  bomb.vy = -4;
+  bomb.turn = -3;
+  const crate = prop('tnt', 100, 80);
+  assert.equal(step(bomb, [crate]), 'tnt');
+  assert.ok(Math.abs(bomb.turn) > 11, 'a crate should speed the tumble');
+}
+
 // A full bar flies on its own. A low bar is a short hop. The field still
 // rewards the default aim when the bar is full.
 {

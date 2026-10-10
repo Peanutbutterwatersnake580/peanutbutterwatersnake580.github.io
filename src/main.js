@@ -415,7 +415,13 @@ function placeKitten(time) {
   const k = game.kitten;
   const y = k.cause === 'spikes' ? Math.max(8, k.y - game.sink) : k.y;
   kitten.mesh.position.set(k.x, y, KITTY_Z);
-  kitten.mesh.rotation.z = (k.spin * Math.PI) / 180;
+  if (k.cause === 'landed') {
+    const current = kitten.mesh.rotation.z;
+    const rest = Math.round(current / (Math.PI * 2)) * Math.PI * 2;
+    kitten.mesh.rotation.z = current + (rest - current) * 0.18;
+  } else {
+    kitten.mesh.rotation.z = (k.spin * Math.PI) / 180;
+  }
   const s = game.squash;
   kitten.mesh.scale.set(1 + s * 0.28, 1 - s * 0.32, 1);
   kitten.eye.scale.y = 1;

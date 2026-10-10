@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && cp dist/kitten_cannon.html docs/kitten_cannon.html",
+    "build": "vite build && cp dist/index.html docs/index.html",
     "preview": "vite preview",
     "test": "node src/sim.test.mjs"
   },

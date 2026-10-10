@@ -34,10 +34,18 @@ export function createKitten(angleDeg, power) {
     vy: a.y * power,
     // Degrees. Nose is local +X. Positive rotation.z is nose-up; flight tumbles clockwise.
     spin: angleDeg,
+    // Degrees per frame. Eases toward the motion, then kicks on a hit.
+    turn: tumbleTarget(a.x * power, a.y * power),
     frame: 0,
     dead: false,
     cause: null,
   };
+}
+
+// Degrees per frame. A little roll comes from forward speed. Vertical speed
+// is squared, so the top of the arc hangs and a steep climb or dive whirls.
+function tumbleTarget(vx, vy) {
+  return -(Math.abs(vx) * 0.045 + vy * vy * 0.012);
 }
 
 function clampSpeed(k) {
@@ -80,11 +88,13 @@ function land(k) {
     k.dead = true;
     k.vx = 0;
     k.vy = 0;
+    k.turn = 0;
     k.cause = 'landed';
     return 'settle';
   }
   k.vx *= BOUNCE;
   k.vy = falling * BOUNCE;
+  k.turn -= Math.min(14, falling * 0.35);
   return 'bounce';
 }
 
@@ -94,6 +104,7 @@ export function resolveHit(k, prop) {
     k.vx = 5 + k.vx * 1.2;
     prop.spent = true;
     clampSpeed(k);
+    k.turn -= 11;
     return 'tnt';
   }
   if (prop.type === 'balloon') {
@@ -101,6 +112,7 @@ export function resolveHit(k, prop) {
     k.vx = 7 + k.vx * 1.2;
     prop.spent = true;
     clampSpeed(k);
+    k.turn -= 13;
     return 'balloon';
   }
   if (prop.type === 'trampoline') {
@@ -110,12 +122,14 @@ export function resolveHit(k, prop) {
     k.vy = -k.vy * 1.4;
     prop.ready = k.frame + 10;
     clampSpeed(k);
+    k.turn -= 8;
     return 'trampoline';
   }
   if (prop.type === 'spikes') {
     k.dead = true;
     k.vx = 0;
     k.vy = 0;
+    k.turn = 0;
     k.cause = 'spikes';
     prop.spent = true;
     return 'spikes';
@@ -124,6 +138,7 @@ export function resolveHit(k, prop) {
     k.dead = true;
     k.vx = 0;
     k.vy = 0;
+    k.turn = 0;
     k.cause = 'venus';
     prop.spent = true;
     return 'venus';
@@ -141,7 +156,12 @@ export function step(k, props) {
   const y0 = k.y;
   const x1 = x0 + k.vx;
   const y1 = y0 + k.vy;
-  k.spin -= k.vx / 5;
+  // Horizontal speed barely changes on a clean arc, so a rate taken only
+  // from vx looks constant. The rate eases toward tumbleTarget, and a hit
+  // kicks it, so the sprite speeds up instead of snapping.
+  const target = tumbleTarget(k.vx, k.vy);
+  k.turn += (target - k.turn) * 0.25;
+  k.spin += k.turn;
 
   const samples = Math.max(1, Math.min(48, Math.ceil(Math.hypot(k.vx, k.vy) / 10)));
   for (let i = 1; i <= samples; i++) {
