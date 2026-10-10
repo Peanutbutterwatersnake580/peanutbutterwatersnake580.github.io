@@ -4,6 +4,15 @@ import { shell } from './look.js';
 // Clouds top out near y 410. These stay parked until the kitten is well above that.
 export const FLYBY_Y = 980;
 
+// The flight camera sits at z = 980. Craft used to spawn just behind the kitten,
+// so a fast pass filled the screen and was gone. They now hang well back in z.
+const CAM_Z = 980;
+const VIEW_TAN = Math.tan((34 * Math.PI) / 360);
+
+function viewHalfWidth(z) {
+  return VIEW_TAN * (CAM_Z - z) * 2.05;
+}
+
 const sphere = new THREE.SphereGeometry(1, 16, 12);
 const box = new THREE.BoxGeometry(1, 1, 1);
 const cone = new THREE.ConeGeometry(1, 1, 12);
@@ -179,23 +188,27 @@ export function createFlybys(scene, look) {
   function launch(cam, kittenY, kind, at) {
     const type = MAKERS[kind] ? kind : pickKind();
     const built = MAKERS[type](look);
+    // Uniform scale keeps the biplane wings outside the body. The extra size
+    // only offsets how far back they sit, so the silhouette stays readable.
+    built.mesh.scale.setScalar(2.2);
     let dir = Math.random() < 0.5 ? 1 : -1;
     if (type === 'rocket' && Math.random() < 0.75) dir = 1;
-    const speed = type === 'rocket' ? 520 + Math.random() * 180
-      : type === 'plane' ? 250 + Math.random() * 110
-      : type === 'ufo' ? 160 + Math.random() * 90
-      : 100 + Math.random() * 50;
-    const lead = type === 'rocket' ? 960 : type === 'blimp' ? 640 : 740;
-    const lift = (Math.random() < 0.6 ? 1 : -1) * (150 + Math.random() * 110);
+    const speed = type === 'rocket' ? 160 + Math.random() * 70
+      : type === 'plane' ? 90 + Math.random() * 40
+      : type === 'ufo' ? 70 + Math.random() * 30
+      : 50 + Math.random() * 25;
+    const z = at && at.z != null ? at.z : -4000 - Math.random() * 1600;
+    const lead = viewHalfWidth(z) + 220 + Math.random() * 280;
+    const lift = (Math.random() < 0.6 ? 1 : -1) * (220 + Math.random() * 180);
     const craft = {
       kind: type,
       mesh: built.mesh,
       parts: built.parts,
-      x: at ? cam.x + at.x : cam.x - dir * (lead + Math.random() * 80),
+      x: at ? cam.x + at.x : cam.x - dir * lead,
       y: at ? kittenY + at.y : kittenY + lift,
-      z: at && at.z != null ? at.z : -60 - Math.random() * 80,
+      z,
       vx: at && at.vx != null ? at.vx : dir * speed,
-      vy: at && at.vy != null ? at.vy : (type === 'rocket' ? 36 + Math.random() * 48 : (Math.random() - 0.5) * 14),
+      vy: at && at.vy != null ? at.vy : (type === 'rocket' ? 14 + Math.random() * 22 : (Math.random() - 0.5) * 8),
       phase: Math.random() * Math.PI * 2,
       age: 0,
     };
@@ -225,8 +238,9 @@ export function createFlybys(scene, look) {
         craft.parts.flame.scale.y = 22 * flick;
         craft.parts.core.scale.y = 14 * (0.55 + flick * 0.45);
       }
-      const past = Math.abs(craft.x - cam.x) > 1500 && Math.sign(craft.x - cam.x) === Math.sign(craft.vx);
-      if (past || craft.age > 16) {
+      const past = Math.abs(craft.x - cam.x) > viewHalfWidth(craft.z) + 360
+        && Math.sign(craft.x - cam.x) === Math.sign(craft.vx);
+      if (past || craft.age > 48) {
         scene.remove(craft.mesh);
         crafts.splice(i, 1);
       }

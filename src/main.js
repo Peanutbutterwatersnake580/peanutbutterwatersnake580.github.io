@@ -422,7 +422,7 @@ function release(code) {
 function onAction() {
   if (game.phase === 'title') startAim();
   else if (game.phase === 'aim') beginShot(null);
-  else if (game.phase === 'result') retry();
+  else if (game.phase === 'flight' || game.phase === 'result') retry();
 }
 
 window.addEventListener('keydown', (e) => {
