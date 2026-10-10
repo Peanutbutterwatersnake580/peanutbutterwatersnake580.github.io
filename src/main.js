@@ -57,7 +57,8 @@ const SHOUT = {
 const app = document.querySelector('#app');
 const canvas = document.querySelector('#view');
 const distanceEl = document.querySelector('#distance');
-const heightEl = document.querySelector('#height');
+const altitudeEl = document.querySelector('#altitude');
+const speedEl = document.querySelector('#speed');
 const recordsEl = document.querySelector('#records');
 const titleBestEl = document.querySelector('#title-best');
 const angleEl = document.querySelector('#angle');
@@ -319,10 +320,17 @@ function finish() {
   cardFeetEl.textContent = formatFt(game.feet);
   cardNoteEl.textContent = NOTES[k.cause] || 'That is the end of the line.';
   cardBestEl.replaceChildren();
-  const flight = document.createElement('p');
-  flight.className = 'flightline';
-  flight.textContent = `${formatFt(feetFromAltitude(game.peakY))} up · ${formatMph(mphFromSpeed(game.peakSpeed))}`;
-  cardBestEl.append(flight);
+  const peakFt = feetFromAltitude(game.peakY);
+  if (peakFt > 100) {
+    const up = document.createElement('p');
+    up.className = 'flight-up';
+    up.textContent = `${peakFt.toLocaleString('en-US')} FT UP`;
+    cardBestEl.append(up);
+  }
+  const pace = document.createElement('p');
+  pace.className = 'flight-speed';
+  pace.textContent = formatMph(mphFromSpeed(game.peakSpeed));
+  cardBestEl.append(pace);
   appendRecordRows(cardBestEl, marks);
   stake.position.set(k.x, 0, 10);
   stake.visible = true;
@@ -581,10 +589,26 @@ function updateHud() {
     distanceEl.textContent = formatFt(feet);
     const alt = feetFromAltitude(game.kitten.y);
     const mph = mphFromSpeed(Math.hypot(game.kitten.vx, game.kitten.vy));
-    const bits = [];
-    if (alt > 0) bits.push(`${formatFt(alt)} up`);
-    if (game.phase === 'flight' && !game.kitten.dead && mph > 0) bits.push(formatMph(mph));
-    heightEl.textContent = bits.join(' · ');
+    if (alt > 100) {
+      altitudeEl.textContent = `${alt.toLocaleString('en-US')} FT UP`;
+      if (altitudeEl.hidden) {
+        altitudeEl.hidden = false;
+        altitudeEl.classList.remove('pop');
+        void altitudeEl.offsetWidth;
+        altitudeEl.classList.add('pop');
+      }
+    } else {
+      altitudeEl.hidden = true;
+      altitudeEl.textContent = '';
+      altitudeEl.classList.remove('pop');
+    }
+    if (game.phase === 'flight' && !game.kitten.dead && mph > 0) {
+      speedEl.hidden = false;
+      speedEl.textContent = formatMph(mph);
+    } else {
+      speedEl.hidden = true;
+      speedEl.textContent = '';
+    }
   }
   cannon.ticks.visible = game.phase === 'aim' || game.phase === 'title';
   cannon.pivot.rotation.z = (game.angle * Math.PI) / 180;

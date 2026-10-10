@@ -6,7 +6,7 @@
   <title>Kitten Cannon</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@600&family=Lilita+One&family=Nunito:wght@700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/src/style.css" />
 </head>
 <body>
@@ -17,7 +17,8 @@
     <header id="hud">
       <div id="scoreblock">
         <div id="distance">0 ft</div>
-        <div id="height"></div>
+        <div id="altitude" hidden></div>
+        <div id="speed" hidden></div>
       </div>
       <div id="records"></div>
       <button id="mute" type="button">Sound on</button>
@@ -35,7 +36,7 @@
           <b id="power-label">0%</b>
         </div>
       </div>
-      <p id="hint">↑ ↓ aim &nbsp;&nbsp; enter or space fires &nbsp;&nbsp; R retry &nbsp;&nbsp; M mute</p>
+      <p id="hint"><kbd>↑</kbd><kbd>↓</kbd> aim <kbd>Enter</kbd> or <kbd>Space</kbd> fires <kbd>R</kbd> retry <kbd>M</kbd> mute</p>
     </header>
 
     <div id="title">
