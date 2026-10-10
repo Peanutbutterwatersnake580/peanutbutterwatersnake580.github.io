@@ -48,27 +48,67 @@ export function createKitten(look) {
   root.add(head);
   shell(head, root, outline, 0.08);
 
-  // Dome sits on the crown and opens toward +X, so the face stays visible.
-  // Ears are added after it and poke out of the top.
-  const capGeo = new THREE.SphereGeometry(10.4, 16, 12, 0, Math.PI * 2, 0, Math.PI * 0.48);
-  const cap = mesh(capGeo, mat(0xc4322a), 13.2, 9.6, 1);
+  // Leather flying helmet, the early-1950s kind. The dome opens toward +X
+  // so the face stays out. The camera sits on +Z, so the ear cup and the
+  // near goggle are built on that side. Ears poke through the crown.
+  const LEATHER = 0x7a4e2c;
+  const LEATHER_DARK = 0x4a2e16;
+  const capGeo = new THREE.SphereGeometry(11, 16, 12, 0, Math.PI * 2, 0, Math.PI * 0.47);
+  const cap = mesh(capGeo, mat(LEATHER), 12.4, 9.2, 1);
   root.add(cap);
-  shell(cap, root, outline, 0.05);
-  const rim = mesh(new THREE.TorusGeometry(9.6, 0.72, 6, 18), mat(BRASS), 13.2, 9.7, 1);
-  rim.rotation.x = Math.PI / 2;
-  root.add(rim);
-  const crest = mesh(new THREE.BoxGeometry(2.4, 4.2, 1.2), mat(BRASS), 11.4, 18.6, 1);
-  crest.rotation.z = 0.35;
-  root.add(crest);
+  shell(cap, root, outline, 0.045);
 
-  const earGeo = new THREE.ConeGeometry(4.4, 9, 5);
-  const earInGeo = new THREE.ConeGeometry(2.4, 5, 5);
-  const earL = mesh(earGeo, mat(FUR), 13, 14.5, 5);
-  const earR = mesh(earGeo, mat(FUR_DARK), 12, 13.5, -4);
-  earR.scale.setScalar(0.85);
+  const brow = mesh(new THREE.SphereGeometry(3.4, 10, 8), mat(LEATHER_DARK), 20.4, 12.4, 5.2);
+  brow.scale.set(1.5, 0.48, 0.85);
+  root.add(brow);
+
+  const flap = mesh(new THREE.SphereGeometry(6.4, 12, 10), mat(LEATHER), 13.6, 4.8, 8.2);
+  flap.scale.set(0.9, 1.2, 0.62);
+  root.add(flap);
+  shell(flap, root, outline, 0.05);
+
+  const cup = mesh(new THREE.CylinderGeometry(4.8, 4.8, 1.6, 16), mat(LEATHER_DARK), 13.8, 4.6, 11.6);
+  cup.rotation.x = Math.PI / 2;
+  root.add(cup);
+  shell(cup, root, outline, 0.07);
+  const pad = mesh(new THREE.CylinderGeometry(2.8, 2.8, 1.7, 14), mat(0x241c16), 13.8, 4.6, 12.3);
+  pad.rotation.x = Math.PI / 2;
+  root.add(pad);
+
+  // Strap leaves the cup, runs forward, and buckles under the jaw.
+  const strap = mesh(new THREE.CapsuleGeometry(0.72, 9, 3, 6), mat(LEATHER_DARK), 17.4, 1.4, 9.4);
+  strap.rotation.z = -0.85;
+  strap.rotation.y = 0.35;
+  root.add(strap);
+  const buckle = mesh(new THREE.BoxGeometry(2.4, 1.6, 0.7), mat(BRASS), 19.6, -0.6, 10.2);
+  root.add(buckle);
+
+  const lensMat = new THREE.MeshBasicMaterial({ color: 0xf0c36a });
+  const goggle = new THREE.Group();
+  const lens = mesh(new THREE.CylinderGeometry(3.5, 3.5, 0.8, 14), lensMat, 0, 0, 0.5);
+  lens.rotation.x = Math.PI / 2;
+  const frame = mesh(new THREE.TorusGeometry(3.5, 0.68, 6, 16), mat(0x2a2118), 0, 0, 0);
+  frame.rotation.x = Math.PI / 2;
+  const glintLens = mesh(new THREE.SphereGeometry(0.7, 8, 6), mat(CREAM), 1.2, 1.3, 1.1);
+  goggle.add(lens, frame, glintLens);
+  shell(frame, goggle, outline, 0.1);
+  goggle.position.set(18.4, 14.4, 8.4);
+  goggle.rotation.y = -0.7;
+  goggle.rotation.z = -0.4;
+  root.add(goggle);
+
+  const band = mesh(new THREE.CapsuleGeometry(0.85, 12, 3, 6), mat(LEATHER_DARK), 13.2, 17.6, 2.2);
+  band.rotation.z = Math.PI / 2;
+  root.add(band);
+
+  const earGeo = new THREE.ConeGeometry(4.2, 9, 5);
+  const earInGeo = new THREE.ConeGeometry(2.3, 5, 5);
+  const earL = mesh(earGeo, mat(FUR), 13.2, 17.8, 5.4);
+  const earR = mesh(earGeo, mat(FUR_DARK), 12.4, 16.6, -3.2);
+  earR.scale.setScalar(0.82);
   root.add(earL, earR);
   shell(earL, root, outline, 0.1);
-  const earIn = mesh(earInGeo, mat(EAR), 13.4, 13.6, 6.2);
+  const earIn = mesh(earInGeo, mat(EAR), 13.6, 16.8, 6.6);
   root.add(earIn);
 
   const eyeWhite = mesh(new THREE.SphereGeometry(3.3, 12, 10), mat(0xfffaf4), 21.2, 7.1, 7.2);

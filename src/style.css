@@ -31,7 +31,7 @@ html, body {
   box-shadow: inset 0 0 140px rgba(40, 36, 20, 0.22);
 }
 
-button, .panel, h1, h2, #distance, #best, #banner {
+button, .panel, h1, h2, #distance, #records b, #banner {
   font-family: "Lilita One", "Trebuchet MS", sans-serif;
   font-weight: 400;
 }
@@ -62,15 +62,53 @@ button, .panel, h1, h2, #distance, #best, #banner {
   text-shadow: 0 2px 0 #2b2118;
 }
 
-#best {
+#records {
   position: absolute;
   top: 16px;
   left: 16px;
-  padding: 6px 12px;
+  min-width: 156px;
+  padding: 8px 12px 9px;
   background: #fff6e4;
   border: 3px solid #2b2118;
-  border-radius: 999px;
+  border-radius: 16px;
   box-shadow: 3px 3px 0 #2b2118;
+  font-family: Nunito, sans-serif;
+  font-weight: 800;
+}
+
+#records p, .bestline p, #card-best p {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  margin: 0;
+  line-height: 1.35;
+}
+
+#records span, .bestline span, #card-best span {
+  color: #8a4b28;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+#records b, .bestline b, #card-best b {
+  font-size: 15px;
+}
+
+.bestline, #card-best {
+  margin: 12px auto 0;
+  width: min(230px, 100%);
+  text-align: left;
+}
+
+#card-best .flightline, .bestline .flightline {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 800;
+}
+
+#card-best .fresh b {
+  color: #d23b2e;
 }
 
 #mute {
@@ -270,7 +308,7 @@ button#start:active, button#again:active, #pad button:active {
 #app[data-phase="title"] #hint,
 #app[data-phase="title"] #pad,
 #app[data-phase="title"] #scoreblock,
-#app[data-phase="title"] #best,
+#app[data-phase="title"] #records,
 #app[data-phase="aim"] #scoreblock,
 #app[data-phase="flight"] #meter,
 #app[data-phase="flight"] #pad,
@@ -292,7 +330,12 @@ button#start:active, button#again:active, #pad button:active {
   white-space: pre-wrap;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 720px) {
   #hint { display: none; }
   #meter { bottom: 78px; }
+  #scoreblock { top: 96px; }
+  #records { top: 10px; left: 10px; min-width: 132px; padding: 6px 8px 7px; }
+  #records span, #card-best span, .bestline span { font-size: 10px; }
+  #records b, #card-best b, .bestline b { font-size: 14px; }
+  #mute { top: 10px; right: 10px; }
 }

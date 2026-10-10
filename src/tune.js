@@ -70,6 +70,19 @@ export function feetFromTravel(startX, x) {
   return Math.max(0, Math.round((x - startX) / PIXELS_PER_FOOT));
 }
 
+export function feetFromAltitude(y) {
+  return Math.max(0, Math.round((y - GROUND_Y) / PIXELS_PER_FOOT));
+}
+
+// One frame is 1/30 s and 30 px is one foot, so px/frame is already ft/s.
+export function mphFromSpeed(pxPerFrame) {
+  return Math.max(0, Math.round((pxPerFrame * 3600) / 5280));
+}
+
 export function formatFt(n) {
   return `${Math.max(0, Math.round(n)).toLocaleString('en-US')} ft`;
+}
+
+export function formatMph(mph) {
+  return `${Math.max(0, Math.round(mph)).toLocaleString('en-US')} mph`;
 }

@@ -10,6 +10,7 @@ import {
 import { buildCourse, resetCourse } from './course.js';
 import { createLook } from './look.js';
 import { createKitten as makeState, step } from './physics.js';
+import { createFlybys } from './flyby.js';
 import { createScenery } from './scenery.js';
 import {
   ANGLE_MAX,
@@ -17,23 +18,27 @@ import {
   DEFAULT_ANGLE,
   GROUND_Y,
   MAX_SPEED,
-  PIXELS_PER_FOOT,
   PIVOT_X,
   POWER_MAX,
   POWER_MIN,
   STEP,
   aimVector,
   barrelMuzzle,
+  feetFromAltitude,
   feetFromTravel,
   formatFt,
+  formatMph,
   launchPoint,
+  mphFromSpeed,
   peekPoint,
   powerFromClock,
 } from './tune.js';
 
 document.getElementById('need-js')?.remove();
 
-const BEST_KEY = 'kitten-cannon-best-ft';
+const FAR_KEY = 'kitten-cannon-best-ft';
+const HIGH_KEY = 'kitten-cannon-highest-ft';
+const FAST_KEY = 'kitten-cannon-fastest';
 const KITTY_Z = 6;
 const PROP_Z = 2;
 const NOTES = {
@@ -53,7 +58,7 @@ const app = document.querySelector('#app');
 const canvas = document.querySelector('#view');
 const distanceEl = document.querySelector('#distance');
 const heightEl = document.querySelector('#height');
-const bestEl = document.querySelector('#best');
+const recordsEl = document.querySelector('#records');
 const titleBestEl = document.querySelector('#title-best');
 const angleEl = document.querySelector('#angle');
 const powerEl = document.querySelector('#power');
@@ -89,6 +94,7 @@ fillLight.position.set(-80, 60, 40);
 scene.add(fillLight);
 
 const scenery = createScenery(scene, look);
+const flybys = createFlybys(scene, look);
 const kitten = makeKittenMesh(look);
 scene.add(kitten.mesh);
 const cannon = createCannon(look);
@@ -122,7 +128,12 @@ const game = {
   power: POWER_MIN,
   kitten: null,
   feet: 0,
-  best: loadBest(),
+  furthest: loadNumber(FAR_KEY),
+  highest: loadNumber(HIGH_KEY),
+  fastest: loadNumber(FAST_KEY),
+  peakY: 0,
+  peakSpeed: 0,
+  was: { furthest: 0, highest: 0, fastest: 0 },
   hold: 0,
   squash: 0,
   sink: 0,
@@ -134,17 +145,19 @@ const hold = { ArrowUp: 0, ArrowDown: 0 };
 
 const params = new URLSearchParams(location.search);
 
-function loadBest() {
+function loadNumber(key) {
   try {
-    return Number(localStorage.getItem(BEST_KEY)) || 0;
+    return Number(localStorage.getItem(key)) || 0;
   } catch {
     return 0;
   }
 }
 
-function saveBest(n) {
+function saveRecords() {
   try {
-    localStorage.setItem(BEST_KEY, String(n));
+    localStorage.setItem(FAR_KEY, String(game.furthest));
+    localStorage.setItem(HIGH_KEY, String(game.highest));
+    localStorage.setItem(FAST_KEY, String(game.fastest));
   } catch {
     // Private mode can refuse storage. The score still shows for this run.
   }
@@ -155,13 +168,37 @@ function setPhase(phase) {
   app.dataset.phase = phase;
   cardEl.classList.toggle('hidden', phase !== 'result');
   padFireEl.textContent = phase === 'result' ? 'Again' : 'Fire';
-  paintBest();
+  paintRecords();
 }
 
-function paintBest() {
-  const label = game.best > 0 ? `Best ${formatFt(game.best)}` : 'Best —';
-  bestEl.textContent = label;
-  titleBestEl.textContent = game.best > 0 ? `Your best is ${formatFt(game.best)}` : '';
+function recordRows() {
+  return [
+    ['Furthest', game.furthest > 0 ? formatFt(game.furthest) : '—', 'far'],
+    ['Highest', game.highest > 0 ? formatFt(game.highest) : '—', 'high'],
+    ['Fastest', game.fastest > 0 ? formatMph(mphFromSpeed(game.fastest)) : '—', 'fast'],
+  ];
+}
+
+function appendRecordRows(el, marks) {
+  for (const [label, value, key] of recordRows()) {
+    const row = document.createElement('p');
+    if (marks && marks[key]) row.className = 'fresh';
+    const name = document.createElement('span');
+    name.textContent = label;
+    const num = document.createElement('b');
+    num.textContent = marks && marks[key] ? `${value}  new` : value;
+    row.append(name, num);
+    el.append(row);
+  }
+}
+
+function paintRecords() {
+  recordsEl.replaceChildren();
+  appendRecordRows(recordsEl, null);
+  titleBestEl.replaceChildren();
+  if (game.furthest > 0 || game.highest > 0 || game.fastest > 0) {
+    appendRecordRows(titleBestEl, null);
+  }
 }
 
 function clampAngle() {
@@ -197,6 +234,7 @@ function safeAudio(fn) {
 }
 
 function startAim() {
+  flybys.clear();
   setPhase('aim');
   stake.visible = false;
   kitten.mesh.visible = true;
@@ -210,8 +248,12 @@ function beginShot(forcedPower) {
   safeAudio(() => audio.unlock());
   const power = forcedPower == null ? powerFromClock(performance.now() / 1000) : forcedPower;
   game.power = power;
+  game.was = { furthest: game.furthest, highest: game.highest, fastest: game.fastest };
   game.kitten = makeState(game.angle, power);
   game.feet = 0;
+  game.peakY = game.kitten.y;
+  game.peakSpeed = Math.hypot(game.kitten.vx, game.kitten.vy);
+  commitRecords();
   game.hold = 0;
   game.squash = 0;
   game.sink = 0;
@@ -226,18 +268,62 @@ function beginShot(forcedPower) {
   setPhase('flight');
 }
 
+function afterStep() {
+  const k = game.kitten;
+  if (!k) return;
+  if (k.y > game.peakY) game.peakY = k.y;
+  const speed = Math.hypot(k.vx, k.vy);
+  if (speed > game.peakSpeed) game.peakSpeed = speed;
+}
+
+function commitRecords() {
+  const k = game.kitten;
+  if (!k) return;
+  const far = feetFromTravel(k.startX, k.x);
+  const high = feetFromAltitude(game.peakY);
+  const fast = game.peakSpeed;
+  let dirty = false;
+  if (far > game.furthest) {
+    game.furthest = far;
+    dirty = true;
+  }
+  if (high > game.highest) {
+    game.highest = high;
+    dirty = true;
+  }
+  if (fast > game.fastest) {
+    game.fastest = fast;
+    dirty = true;
+  }
+  if (dirty) {
+    saveRecords();
+    paintRecords();
+  }
+}
+
 function finish() {
   const k = game.kitten;
+  afterStep();
+  commitRecords();
   game.feet = feetFromTravel(k.startX, k.x);
-  const record = game.feet > game.best;
-  if (record) {
-    game.best = game.feet;
-    saveBest(game.best);
-  }
-  cardKickerEl.textContent = record ? 'New record' : 'Distance';
+  const marks = {
+    far: game.feet > game.was.furthest,
+    high: feetFromAltitude(game.peakY) > game.was.highest,
+    fast: game.peakSpeed > game.was.fastest,
+  };
+  const fresh = [];
+  if (marks.far) fresh.push('furthest');
+  if (marks.high) fresh.push('highest');
+  if (marks.fast) fresh.push('fastest');
+  cardKickerEl.textContent = fresh.length === 0 ? 'Distance' : fresh.length === 1 ? `New ${fresh[0]}` : 'New records';
   cardFeetEl.textContent = formatFt(game.feet);
   cardNoteEl.textContent = NOTES[k.cause] || 'That is the end of the line.';
-  cardBestEl.textContent = `Best ${formatFt(game.best)}`;
+  cardBestEl.replaceChildren();
+  const flight = document.createElement('p');
+  flight.className = 'flightline';
+  flight.textContent = `${formatFt(feetFromAltitude(game.peakY))} up · ${formatMph(mphFromSpeed(game.peakSpeed))}`;
+  cardBestEl.append(flight);
+  appendRecordRows(cardBestEl, marks);
   stake.position.set(k.x, 0, 10);
   stake.visible = true;
   setPhase('result');
@@ -460,9 +546,12 @@ function updateCamera(dt) {
   const flying = game.phase === 'flight' || game.phase === 'result';
   const k = game.kitten;
   // One distance for the whole flight. The camera follows; it does not zoom.
-  const focusX = flying ? k.x + 220 : 490;
-  const focusY = flying ? Math.max(120, k.y - 36) : 120;
+  // The lead shrinks on a narrow screen so the kitten stays in frame.
   const z = 980;
+  const halfW = Math.tan((camera.fov * Math.PI) / 360) * z * Math.max(0.3, camera.aspect);
+  const lead = Math.min(220, halfW * 0.42);
+  const focusX = flying ? k.x + lead : 490;
+  const focusY = flying ? Math.max(120, k.y - 36) : 120;
   if (flying) {
     cam.x = focusX;
     cam.y = focusY;
@@ -490,8 +579,12 @@ function updateHud() {
     const feet = feetFromTravel(game.kitten.startX, game.kitten.x);
     game.feet = feet;
     distanceEl.textContent = formatFt(feet);
-    const alt = Math.max(0, Math.round((game.kitten.y - GROUND_Y) / PIXELS_PER_FOOT));
-    heightEl.textContent = alt > 0 ? `${formatFt(alt)} up` : '';
+    const alt = feetFromAltitude(game.kitten.y);
+    const mph = mphFromSpeed(Math.hypot(game.kitten.vx, game.kitten.vy));
+    const bits = [];
+    if (alt > 0) bits.push(`${formatFt(alt)} up`);
+    if (game.phase === 'flight' && !game.kitten.dead && mph > 0) bits.push(formatMph(mph));
+    heightEl.textContent = bits.join(' · ');
   }
   cannon.ticks.visible = game.phase === 'aim' || game.phase === 'title';
   cannon.pivot.rotation.z = (game.angle * Math.PI) / 180;
@@ -549,10 +642,12 @@ function frame(now) {
         }
       }
       onEvent(step(game.kitten, course));
+      afterStep();
       acc -= STEP;
       steps += 1;
     }
     audio.wind(Math.abs(game.kitten.vx) / MAX_SPEED);
+    commitRecords();
   } else {
     acc = 0;
     audio.wind(0);
@@ -576,6 +671,7 @@ function frame(now) {
   shadow.visible = kitten.mesh.visible;
 
   scenery.update(time, cam);
+  flybys.update(time, dt, cam, game.kitten ? game.kitten.y : 0, game.phase === 'flight' && game.kitten && !game.kitten.dead);
   particles.update(dt);
   renderer.render(scene, camera);
 
@@ -597,19 +693,26 @@ function frame(now) {
 
 assertFrames();
 setPhase('title');
-paintBest();
+paintRecords();
 
 window.__kitten = {
   ready: false,
   get phase() { return game.phase; },
   get angle() { return game.angle; },
   get feet() { return game.feet; },
+  get records() {
+    return { furthest: game.furthest, highest: game.highest, fastest: game.fastest };
+  },
+  get sky() { return flybys.stats(); },
   get cause() { return game.kitten ? game.kitten.cause : null; },
   get x() { return game.kitten ? game.kitten.x : launchPoint(game.angle).x; },
   get y() { return game.kitten ? game.kitten.y : launchPoint(game.angle).y; },
   start: startAim,
   aim(n) { game.angle = n; clampAngle(); },
   fire(power) { beginShot(power == null ? null : Number(power)); },
+  show(kind, at) {
+    flybys.launch(cam, game.kitten ? game.kitten.y : cam.y, kind, at || null);
+  },
   retry,
 };
 
@@ -623,7 +726,9 @@ if (params.has('demo')) {
   const frames = Number(params.get('frames') || 0);
   for (let i = 0; i < frames && game.kitten && !game.kitten.dead; i++) {
     onEvent(step(game.kitten, course));
+    afterStep();
   }
+  commitRecords();
   if (frames > 0 && game.kitten && game.kitten.dead) game.hold = 0;
 }
 

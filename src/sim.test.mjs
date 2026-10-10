@@ -5,10 +5,15 @@ import { HIT } from './propspec.js';
 import {
   aimVector,
   barrelMuzzle,
+  feetFromAltitude,
   feetFromTravel,
+  formatMph,
   launchPoint,
+  mphFromSpeed,
   POWER_MAX,
   POWER_MIN,
+  GROUND_Y,
+  PIXELS_PER_FOOT,
 } from './tune.js';
 
 function prop(type, x, y) {
@@ -27,6 +32,16 @@ function prop(type, x, y) {
 function shot(angle, power, props, frames = 30 * 60) {
   resetCourse(props);
   return runUntilDone(angle, power, props, frames);
+}
+
+// Distance is feet. Height is feet above the grass. Speed is stored as
+// px/frame, which is already ft/s, and shown as mph.
+{
+  assert.equal(feetFromAltitude(GROUND_Y + PIXELS_PER_FOOT), 1);
+  assert.equal(feetFromAltitude(GROUND_Y - 20), 0);
+  assert.equal(mphFromSpeed(30), 20);
+  assert.equal(formatMph(20), '20 mph');
+  assert.equal(mphFromSpeed(0), 0);
 }
 
 // The aim vector is the only barrel direction. 0° is +X, 90° is +Y.
