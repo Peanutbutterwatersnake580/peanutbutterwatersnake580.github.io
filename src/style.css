@@ -25,6 +25,7 @@ html, body {
 #app {
   position: fixed;
   inset: 0;
+  touch-action: none;
 }
 
 #view {
@@ -164,14 +165,22 @@ button, .panel, h1, h2, #distance, #altitude, #records b, #banner {
   bottom: calc(16px + var(--safe-bottom));
   top: auto;
   right: auto;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  display: grid;
+  place-items: center;
   border: 3px solid #2b2118;
   background: #fff6e4;
-  border-radius: 999px;
-  padding: 8px 14px;
-  font-size: 18px;
+  border-radius: 14px;
   cursor: pointer;
   box-shadow: 3px 3px 0 #2b2118;
 }
+
+#mute svg { width: 28px; height: 28px; display: block; }
+#mute .slash { display: none; }
+#mute.is-muted .wave { display: none; }
+#mute.is-muted .slash { display: block; }
 
 #mute:active { transform: translate(2px, 2px); box-shadow: none; }
 
@@ -473,6 +482,20 @@ button#start:active, button#again:active, #pad button:active {
 
 @media (max-height: 500px) {
   #hint { display: none; }
+  #meter {
+    top: calc(8px + var(--safe-top));
+    bottom: auto;
+    left: calc(12px + var(--safe-left));
+    right: auto;
+    transform: none;
+    max-width: calc(100% - 210px - var(--safe-left) - var(--safe-right));
+    padding: 4px 8px;
+    gap: 8px;
+  }
+  #meter .col { min-width: 48px; }
+  #meter .col span { font-size: 11px; }
+  #meter .col b { font-size: 18px; }
+  #meter .barwrap { height: 12px; width: min(28vw, 160px); }
   #title, #card {
     top: calc(var(--safe-top) + 8px);
     transform: translate(-50%, 0);

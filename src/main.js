@@ -16,6 +16,7 @@ import {
   ANGLE_MAX,
   ANGLE_MIN,
   DEFAULT_ANGLE,
+  CANNON_X,
   GROUND_Y,
   MAX_SPEED,
   PIVOT_X,
@@ -437,8 +438,8 @@ window.addEventListener('keydown', (e) => {
   if (accept) onAction();
   else if (e.code === 'KeyR') retry();
   else if (e.code === 'KeyM') {
-    const muted = audio.toggleMute();
-    muteEl.textContent = muted ? 'Sound off' : 'Sound on';
+    safeAudio(() => audio.unlock());
+    paintMute(audio.toggleMute());
   }
 });
 window.addEventListener('keyup', (e) => {
@@ -488,11 +489,56 @@ function bindTap(el, fn) {
 
 bindTap(document.querySelector('#start'), startAim);
 bindTap(document.querySelector('#again'), retry);
+function paintMute(muted) {
+  muteEl.classList.toggle('is-muted', muted);
+  muteEl.setAttribute('aria-label', muted ? 'Sound off' : 'Sound on');
+}
+
 bindTap(muteEl, () => {
   safeAudio(() => audio.unlock());
-  const muted = audio.toggleMute();
-  muteEl.textContent = muted ? 'Sound off' : 'Sound on';
+  paintMute(audio.toggleMute());
 });
+
+// A tap on the field is Enter. A vertical drag aims. Buttons keep their own taps.
+let touchAim = null;
+function fieldTarget(target) {
+  return !(target && target.closest && target.closest('button, a'));
+}
+app.addEventListener('pointerdown', (e) => {
+  if (e.pointerType === 'mouse' || !fieldTarget(e.target)) return;
+  askFullscreen();
+  safeAudio(() => audio.unlock());
+  touchAim = {
+    id: e.pointerId,
+    x: e.clientX,
+    y: e.clientY,
+    lastY: e.clientY,
+    moved: false,
+  };
+});
+app.addEventListener('pointermove', (e) => {
+  if (!touchAim || e.pointerId !== touchAim.id) return;
+  const dy = e.clientY - touchAim.lastY;
+  const adx = Math.abs(e.clientX - touchAim.x);
+  const ady = Math.abs(e.clientY - touchAim.y);
+  if (!touchAim.moved) {
+    if (Math.hypot(adx, ady) < 16) return;
+    touchAim.moved = true;
+  }
+  touchAim.lastY = e.clientY;
+  if ((game.phase === 'aim' || game.phase === 'title') && ady >= adx) {
+    game.angle -= dy * 0.32;
+    clampAngle();
+  }
+});
+function endTouchAim(e) {
+  if (!touchAim || e.pointerId !== touchAim.id) return;
+  const tap = !touchAim.moved && fieldTarget(e.target);
+  touchAim = null;
+  if (tap) onAction();
+}
+app.addEventListener('pointerup', endTouchAim);
+app.addEventListener('pointercancel', endTouchAim);
 
 for (const button of document.querySelectorAll('#pad button')) {
   const act = button.dataset.act;
@@ -607,7 +653,9 @@ function updateCamera(dt) {
   const z = 980;
   const halfW = Math.tan((camera.fov * Math.PI) / 360) * z * Math.max(0.3, camera.aspect);
   const lead = Math.min(220, halfW * 0.42);
-  const focusX = flying ? k.x + lead : 490;
+  // x=490 looks down the field. A narrow view then starts past the wheels.
+  const aimX = Math.min(490, CANNON_X + PIVOT_X - 84 + halfW);
+  const focusX = flying ? k.x + lead : aimX;
   const focusY = flying ? Math.max(120, k.y - 36) : 120;
   if (flying) {
     cam.x = focusX;
