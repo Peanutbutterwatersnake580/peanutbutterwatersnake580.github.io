@@ -77,15 +77,24 @@ export function createScenery(scene, look) {
   // at this grazing angle; the tufts carry the detail instead.
   const grass = look.mat(0x5eae3c);
   const dirt = look.mat(0xc4894e);
-  const ground = new THREE.Mesh(new THREE.BoxGeometry(300000, 90, 240), [
+  // The aim view looks below the old slab and showed sky under the dirt.
+  // Top stays at y=0. The extra depth is the same brown, continued down.
+  const ground = new THREE.Mesh(new THREE.BoxGeometry(300000, 420, 240), [
     dirt, dirt, grass, dirt, dirt, dirt,
   ]);
-  ground.position.set(146000, -45, -10);
+  ground.position.set(146000, -210, -10);
   scene.add(ground);
 
   scene.add(ridge(0x8ed468, 78, 42, -160, 0.55, 0.4));
   scene.add(ridge(0x3f8f62, 110, 64, -300, 0.42, 1.2));
   scene.add(ridge(0x6aa4c8, 150, 80, -480, 0.31, 2.1));
+
+  // Fixed world height, behind the foothill ridges. update() slides them in x only.
+  const ranges = [
+    mountainRange(scene, { color: 0x6e8f62, snow: 0, z: -640, height: 260, parallax: 0.55, seed: 0x51a1 }),
+    mountainRange(scene, { color: 0x7b93aa, snow: 0xf7f4ee, z: -1040, height: 460, parallax: 0.32, seed: 0x51a2 }),
+    mountainRange(scene, { color: 0xb4cbe2, snow: 0xfffdf8, z: -1560, height: 680, parallax: 0.14, seed: 0x51a3 }),
+  ];
 
   const rng = mulberry32(0x0a11ce);
   const cone = new THREE.ConeGeometry(5, 16, 4);
@@ -161,6 +170,7 @@ export function createScenery(scene, look) {
     update(time, cam) {
       sky.position.set(cam.x, cam.y, cam.z);
       sun.position.set(cam.x - 520, cam.y + 268, -460);
+      for (let i = 0; i < ranges.length; i++) trackRange(ranges[i], cam.x);
       const cloudSpan = clouds.length * cloudGap;
       for (let i = 0; i < clouds.length; i++) {
         const cloud = clouds[i];
@@ -171,6 +181,58 @@ export function createScenery(scene, look) {
       }
     },
   };
+}
+
+function mountainRange(scene, opts) {
+  const span = 4200;
+  const step = 230;
+  const tiles = 3;
+  const count = Math.round((span * tiles) / step);
+  const rng = mulberry32(opts.seed);
+  const positions = [];
+  const indices = [];
+  const caps = [];
+  const capIndex = [];
+  for (let i = 0; i <= count; i++) {
+    const x = i * step;
+    const peak = i % 2 === 1;
+    const lift = peak ? opts.height * (0.42 + rng() * 0.7) : opts.height * rng() * 0.16;
+    positions.push(x, lift, 0, x, -36, 0);
+    if (peak && opts.snow) {
+      const n = caps.length / 3;
+      const cap = lift * 0.62;
+      // Left shoulder, right shoulder, tip. That winds toward +Z, the camera.
+      caps.push(x - step * 0.34, cap, 2, x + step * 0.34, cap, 2, x, lift + 6, 2);
+      capIndex.push(n, n + 1, n + 2);
+    }
+  }
+  for (let i = 0; i < count; i++) {
+    const a = i * 2;
+    indices.push(a, a + 1, a + 2, a + 1, a + 3, a + 2);
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geo.setIndex(indices);
+  geo.computeVertexNormals();
+  const group = new THREE.Group();
+  // Flat color, same as the foothill ribbons. A toon shade on this card goes muddy.
+  group.add(new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: opts.color, side: THREE.DoubleSide })));
+  if (opts.snow) {
+    const snowGeo = new THREE.BufferGeometry();
+    snowGeo.setAttribute('position', new THREE.Float32BufferAttribute(caps, 3));
+    snowGeo.setIndex(capIndex);
+    snowGeo.computeVertexNormals();
+    group.add(new THREE.Mesh(snowGeo, new THREE.MeshBasicMaterial({ color: opts.snow, side: THREE.DoubleSide })));
+  }
+  group.position.z = opts.z;
+  scene.add(group);
+  return { group, span, parallax: opts.parallax };
+}
+
+function trackRange(range, camX) {
+  const span = range.span;
+  const scroll = ((camX * range.parallax) % span + span) % span;
+  range.group.position.x = camX - scroll - span;
 }
 
 function meshSphere(geo, material, x, y, z) {
