@@ -196,20 +196,26 @@ function shot(angle, power, props, frames = 30 * 60) {
 }
 
 // A full bar flies on its own. A low bar is a short hop. The field still
-// rewards the default aim when the bar is full.
+// rewards the default aim when the bar is full. Balloons continue up through
+// the high sky, so a steep lob can pop several and travel much farther.
 {
   const course = buildCourse();
   assert.equal(buildCourse().length, course.length);
   assert.equal(buildCourse()[0].x, course[0].x);
+  const aloft = course.filter((prop) => prop.type === 'balloon' && prop.y > 4000);
+  const tops = course.filter((prop) => prop.type === 'balloon' && prop.y > 7000);
+  assert.ok(aloft.length > 40, 'balloons should sit well above the low lane');
+  assert.ok(tops.length > 10, 'balloons should reach the top of a high lob');
 
   const natural = shot(32, POWER_MAX, course);
-  const lob = shot(70, POWER_MAX, course);
+  const lob = shot(70, POWER_MAX, course, 30 * 160);
   const weak = shot(32, POWER_MIN, course);
-  assert.equal(feetFromTravel(natural.kitten.startX, natural.kitten.x), 1396);
+  assert.equal(feetFromTravel(natural.kitten.startX, natural.kitten.x), 1268);
   assert.equal(natural.kitten.cause, 'landed');
   assert.ok(natural.hits.includes('balloon') && natural.hits.includes('tnt'));
-  assert.equal(feetFromTravel(lob.kitten.startX, lob.kitten.x), 320);
+  assert.equal(feetFromTravel(lob.kitten.startX, lob.kitten.x), 5001);
   assert.equal(lob.kitten.cause, 'landed');
+  assert.ok(lob.hits.includes('balloon'));
   assert.ok(feetFromTravel(weak.kitten.startX, weak.kitten.x) < 20);
 
   const launched = launchPoint(30);

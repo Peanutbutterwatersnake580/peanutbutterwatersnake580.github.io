@@ -311,27 +311,47 @@ function venus(look) {
   return { mesh: root, parts: { head } };
 }
 
+// One set of parts for every balloon. The field holds hundreds of them.
+let balloonParts = null;
+let balloonShine = null;
+
+function balloonGeometries() {
+  if (balloonParts) return balloonParts;
+  balloonParts = {
+    bomb: new THREE.SphereGeometry(12, 14, 12),
+    fuse: new THREE.CylinderGeometry(0.7, 0.7, 8, 5),
+    spark: new THREE.SphereGeometry(1.6, 6, 6),
+    bag: new THREE.SphereGeometry(16, 16, 12),
+    knot: new THREE.SphereGeometry(2.2, 6, 5),
+    string: new THREE.CylinderGeometry(0.35, 0.35, 16, 4),
+    shine: new THREE.SphereGeometry(4, 8, 6),
+  };
+  return balloonParts;
+}
+
 function balloon(look, salt) {
   const root = new THREE.Group();
   const { mat, outline } = look;
+  const geo = balloonGeometries();
   const color = BALLOON_COLORS[Math.abs(salt) % BALLOON_COLORS.length];
-  const bomb = mesh(new THREE.SphereGeometry(12, 14, 12), mat(0x2a2a2a), 0, -14, 0);
+  const bomb = mesh(geo.bomb, mat(0x2a2a2a), 0, -14, 0);
   root.add(bomb);
   shell(bomb, root, outline, 0.06);
-  const fuse = mesh(new THREE.CylinderGeometry(0.7, 0.7, 8, 5), mat(0xc2a15a), 2, -4, 3);
+  const fuse = mesh(geo.fuse, mat(0xc2a15a), 2, -4, 3);
   fuse.rotation.z = 0.5;
   root.add(fuse);
-  const spark = mesh(new THREE.SphereGeometry(1.6, 6, 6), mat(0xffb703), 4, 0, 4);
+  const spark = mesh(geo.spark, mat(0xffb703), 4, 0, 4);
   root.add(spark);
-  const bag = mesh(new THREE.SphereGeometry(16, 16, 12), mat(color), 0, 18, 0);
+  const bag = mesh(geo.bag, mat(color), 0, 18, 0);
   bag.scale.set(0.92, 1.08, 0.92);
   root.add(bag);
   shell(bag, root, outline, 0.06);
-  const knot = mesh(new THREE.SphereGeometry(2.2, 6, 5), mat(color), 0, 2, 0);
+  const knot = mesh(geo.knot, mat(color), 0, 2, 0);
   root.add(knot);
-  const string = mesh(new THREE.CylinderGeometry(0.35, 0.35, 16, 4), mat(0x4a4038), 0, -6, 0);
+  const string = mesh(geo.string, mat(0x4a4038), 0, -6, 0);
   root.add(string);
-  const shine = mesh(new THREE.SphereGeometry(4, 8, 6), new THREE.MeshBasicMaterial({ color: 0xfffaf0 }), -5, 24, 8);
+  if (!balloonShine) balloonShine = new THREE.MeshBasicMaterial({ color: 0xfffaf0 });
+  const shine = mesh(geo.shine, balloonShine, -5, 24, 8);
   root.add(shine);
   return { mesh: root, parts: { spark } };
 }

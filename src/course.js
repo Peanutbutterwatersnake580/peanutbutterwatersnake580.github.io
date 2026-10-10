@@ -1,6 +1,7 @@
 // The field is fixed, so a run can be learned the way the Flash game was.
 // Opening props are placed on the landing spots of a full-power shot (see sim.test).
 // After that, a seeded pattern keeps boosters and hazards coming.
+// Low balloons stay near the grass. Extra lanes carry balloons up through the high sky.
 
 import { HIT } from './propspec.js';
 
@@ -96,7 +97,39 @@ export function buildCourse() {
       });
     }
   }
+  addSkyBalloons(raw, rng);
   return raw.map(materialize);
+}
+
+// The hand-placed and low-lane balloons stay near the grass. These lanes
+// continue upward from there, a few hundred pixels apart, so a high lob
+// still has a balloon in view. The opening is the dense part. Farther down
+// the field the lanes thin out.
+function addSkyBalloons(raw, rng) {
+  sprinkle(raw, rng, { from: 850, to: 42000, step: 1500, y0: 760, y1: 8800, rise: 520, skip: 0.18 });
+  sprinkle(raw, rng, { from: 42000, to: 120000, step: 3000, y0: 760, y1: 5600, rise: 700, skip: 0.28 });
+}
+
+function sprinkle(raw, rng, zone) {
+  for (let x = zone.from; x < zone.to; x += Math.round(zone.step * (0.86 + rng() * 0.28))) {
+    for (let y = zone.y0; y < zone.y1; y += zone.rise) {
+      if (rng() < zone.skip) continue;
+      const bx = Math.round(x + (rng() - 0.5) * zone.step * 0.4);
+      const by = Math.round(y + (rng() - 0.5) * zone.rise * 0.4);
+      if (by < 690) continue;
+      if (crowded(raw, bx, by)) continue;
+      raw.push({ type: 'balloon', x: bx, y: by });
+    }
+  }
+}
+
+function crowded(raw, x, y) {
+  for (let i = 0; i < raw.length; i++) {
+    const other = raw[i];
+    const oy = other.y || 0;
+    if (Math.abs(other.x - x) < 90 && Math.abs(oy - y) < 90) return true;
+  }
+  return false;
 }
 
 export function materialize(raw) {
