@@ -2,15 +2,24 @@
   color: #2b2118;
   font-family: Nunito, "Trebuchet MS", sans-serif;
   background: #8ec8ee;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
 }
 
 * { box-sizing: border-box; }
 
 html, body {
+  position: fixed;
+  inset: 0;
   margin: 0;
+  width: 100%;
   height: 100%;
   overflow: hidden;
+  overscroll-behavior: none;
   touch-action: manipulation;
+  background: #8ec8ee;
 }
 
 #app {
@@ -38,7 +47,7 @@ button, .panel, h1, h2, #distance, #altitude, #records b, #banner {
 
 #scoreblock {
   position: absolute;
-  top: 18px;
+  top: calc(18px + var(--safe-top));
   left: 50%;
   transform: translateX(-50%);
   text-align: center;
@@ -86,8 +95,8 @@ button, .panel, h1, h2, #distance, #altitude, #records b, #banner {
 
 #records {
   position: absolute;
-  top: 16px;
-  right: 16px;
+  top: calc(16px + var(--safe-top));
+  right: calc(16px + var(--safe-right));
   left: auto;
   min-width: 188px;
   padding: 10px 14px 11px;
@@ -151,8 +160,8 @@ button, .panel, h1, h2, #distance, #altitude, #records b, #banner {
 
 #mute {
   position: absolute;
-  left: 16px;
-  bottom: 16px;
+  left: calc(16px + var(--safe-left));
+  bottom: calc(16px + var(--safe-bottom));
   top: auto;
   right: auto;
   border: 3px solid #2b2118;
@@ -192,7 +201,7 @@ button, .panel, h1, h2, #distance, #altitude, #records b, #banner {
 #meter {
   position: absolute;
   left: 50%;
-  bottom: 58px;
+  bottom: calc(58px + var(--safe-bottom));
   transform: translateX(-50%);
   display: flex;
   align-items: center;
@@ -232,9 +241,9 @@ button, .panel, h1, h2, #distance, #altitude, #records b, #banner {
 
 #hint {
   position: absolute;
-  left: 150px;
-  right: 24px;
-  bottom: 22px;
+  left: calc(150px + var(--safe-left));
+  right: calc(24px + var(--safe-right));
+  bottom: calc(22px + var(--safe-bottom));
   margin: 0;
   text-align: center;
   color: #fffaf0;
@@ -245,13 +254,13 @@ button, .panel, h1, h2, #distance, #altitude, #records b, #banner {
 }
 
 #app[data-phase="aim"] #hint {
-  left: 16px;
-  right: 16px;
-  bottom: 150px;
+  left: calc(16px + var(--safe-left));
+  right: calc(16px + var(--safe-right));
+  bottom: calc(150px + var(--safe-bottom));
 }
 
 #app[data-phase="result"] #hint {
-  right: 250px;
+  right: calc(250px + var(--safe-right));
 }
 
 kbd {
@@ -277,11 +286,11 @@ kbd {
 #title, #card {
   position: absolute;
   z-index: 3;
-  left: 50%;
-  top: 50%;
+  left: calc(50% + (var(--safe-left) - var(--safe-right)) / 2);
+  top: calc(50% + (var(--safe-top) - var(--safe-bottom)) / 2);
   transform: translate(-50%, -50%);
-  width: min(560px, calc(100% - 32px));
-  max-height: calc(100% - 24px);
+  width: min(560px, calc(100% - 32px - var(--safe-left) - var(--safe-right)));
+  max-height: calc(100% - 24px - var(--safe-top) - var(--safe-bottom));
   overflow: auto;
 }
 
@@ -374,8 +383,8 @@ button#start:active, button#again:active, #pad button:active {
 
 #pad {
   position: absolute;
-  right: 16px;
-  bottom: 16px;
+  right: calc(16px + var(--safe-right));
+  bottom: calc(16px + var(--safe-bottom));
   display: flex;
   gap: 8px;
 }
@@ -413,17 +422,82 @@ button#start:active, button#again:active, #pad button:active {
 
 @media (max-width: 720px) {
   #hint { display: none; }
-  #meter { bottom: 78px; }
-  #scoreblock { top: 118px; }
+  #meter { bottom: calc(78px + var(--safe-bottom)); }
+  #scoreblock { top: calc(118px + var(--safe-top)); }
   #records {
-    top: 10px;
-    right: 10px;
+    top: calc(10px + var(--safe-top));
+    right: calc(10px + var(--safe-right));
     left: auto;
     min-width: 164px;
     padding: 8px 10px 9px;
   }
   #records span, #card-best span, .bestline span { font-size: 12px; }
   #records b, #card-best b, .bestline b { font-size: 16px; }
-  #mute { top: auto; right: auto; left: 12px; bottom: 12px; }
+  #mute {
+    top: auto;
+    right: auto;
+    left: calc(12px + var(--safe-left));
+    bottom: calc(12px + var(--safe-bottom));
+  }
   #altitude { -webkit-text-stroke-width: 4px; }
+}
+
+/* A landscape phone is wider than 720px, so width alone still shows the keys. */
+@media (pointer: coarse), (hover: none) {
+  #hint { display: none; }
+}
+
+@media (max-width: 720px), (pointer: coarse) {
+  #title, #card {
+    width: min(520px, calc(100% - 20px - var(--safe-left) - var(--safe-right)));
+    max-height: calc(100% - 16px - var(--safe-top) - var(--safe-bottom));
+  }
+  .panel {
+    border-width: 4px;
+    border-radius: 16px;
+    box-shadow: 4px 5px 0 #2b2118;
+    padding: 14px 16px 12px;
+  }
+  .eyebrow { font-size: 12px; letter-spacing: 0.04em; }
+  h1 { margin: 2px 0 6px; font-size: clamp(36px, 11vw, 56px); }
+  h2 { margin: 2px 0 4px; font-size: clamp(40px, 12vw, 64px); }
+  .lede, #card-note { font-size: 16px; line-height: 1.35; }
+  .lede { margin-bottom: 10px; }
+  #card-note { margin-top: 4px; }
+  #card-best .flight-up { font-size: 24px; }
+  #card-best .flight-speed { font-size: 16px; margin: 2px 0 8px; }
+  .bestline, #card-best { margin-top: 8px; }
+  #need-js { font-size: 14px; margin-top: 8px; }
+  button#start, button#again { font-size: 20px; padding: 8px 18px; }
+}
+
+@media (max-height: 500px) {
+  #hint { display: none; }
+  #title, #card {
+    top: calc(var(--safe-top) + 8px);
+    transform: translate(-50%, 0);
+    width: min(520px, calc(100% - 16px - var(--safe-left) - var(--safe-right)));
+    max-height: calc(100% - 84px - var(--safe-top) - var(--safe-bottom));
+  }
+  .panel {
+    padding: 8px 12px 8px;
+    border-radius: 14px;
+    box-shadow: 3px 3px 0 #2b2118;
+  }
+  .eyebrow { font-size: 11px; }
+  h1 { font-size: 32px; margin: 0 0 4px; }
+  h2 { font-size: 36px; margin: 0 0 2px; }
+  .lede, #card-note { font-size: 13px; line-height: 1.25; }
+  .lede { margin-bottom: 6px; }
+  #card-best .flight-up { font-size: 18px; }
+  #card-best .flight-speed { font-size: 14px; margin: 1px 0 4px; }
+  .bestline, #card-best { margin-top: 4px; }
+  #records p, .bestline p, #card-best p { line-height: 1.25; gap: 10px; }
+  button#start, button#again { font-size: 18px; padding: 6px 14px; }
+  #pad button { padding: 8px 12px; font-size: 18px; }
+}
+
+@media (max-height: 500px) and (max-width: 980px) {
+  #app[data-phase="result"] #scoreblock,
+  #app[data-phase="result"] #records { display: none; }
 }

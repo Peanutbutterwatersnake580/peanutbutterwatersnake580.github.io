@@ -1,0 +1,10 @@
+{
+  "name": "Kitten Cannon",
+  "short_name": "Kitten Cannon",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "background_color": "#8ec8ee",
+  "theme_color": "#8ec8ee",
+  "orientation": "any"
+}

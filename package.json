@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && cp dist/index.html docs/index.html",
+    "build": "vite build && cp dist/index.html docs/index.html && cp dist/manifest.webmanifest docs/manifest.webmanifest",
     "preview": "vite preview",
     "test": "node src/sim.test.mjs"
   },

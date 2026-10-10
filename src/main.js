@@ -433,6 +433,7 @@ window.addEventListener('keydown', (e) => {
     return;
   }
   if (e.repeat) return;
+  if (accept || e.code === 'KeyR' || e.code === 'KeyM') askFullscreen();
   if (accept) onAction();
   else if (e.code === 'KeyR') retry();
   else if (e.code === 'KeyM') {
@@ -444,6 +445,31 @@ window.addEventListener('keyup', (e) => {
   if (e.code === 'ArrowUp' || e.code === 'ArrowDown') release(e.code);
 });
 
+// iOS Safari rejects page fullscreen. Android and a home-screen launch can drop the bar.
+// Once per session, so leaving fullscreen stays a choice.
+let askedFullscreen = false;
+function askFullscreen() {
+  if (askedFullscreen) return;
+  try {
+    if (navigator.standalone) return;
+    const installed = window.matchMedia('(display-mode: standalone), (display-mode: fullscreen)');
+    if (installed.matches) return;
+    const root = document.documentElement;
+    const req = root.requestFullscreen || root.webkitRequestFullscreen;
+    if (!req) return;
+    askedFullscreen = true;
+    let pending;
+    try {
+      pending = req.call(root, { navigationUI: 'hide' });
+    } catch {
+      pending = req.call(root);
+    }
+    if (pending && typeof pending.catch === 'function') pending.catch(() => {});
+  } catch {
+    askedFullscreen = true;
+  }
+}
+
 // iOS drops click on a local file, and it also drops the first tap when a
 // full-screen parent has pointer-events: none. touchend is the gesture that fires.
 function bindTap(el, fn) {
@@ -452,6 +478,7 @@ function bindTap(el, fn) {
     const now = performance.now();
     if (now - last < 400) return;
     last = now;
+    askFullscreen();
     if (event.cancelable) event.preventDefault();
     fn();
   };
@@ -471,6 +498,7 @@ for (const button of document.querySelectorAll('#pad button')) {
   const act = button.dataset.act;
   button.addEventListener('pointerdown', (e) => {
     e.preventDefault();
+    askFullscreen();
     safeAudio(() => audio.unlock());
     if (act === 'fire') onAction();
     else press(act === 'up' ? 'ArrowUp' : 'ArrowDown');
@@ -486,13 +514,34 @@ for (const button of document.querySelectorAll('#pad button')) {
 }
 
 function resize() {
+  const vv = window.visualViewport;
+  if (vv) {
+    app.style.left = `${vv.offsetLeft}px`;
+    app.style.top = `${vv.offsetTop}px`;
+    app.style.width = `${vv.width}px`;
+    app.style.height = `${vv.height}px`;
+    app.style.right = 'auto';
+    app.style.bottom = 'auto';
+  }
   const w = canvas.clientWidth || window.innerWidth;
   const h = canvas.clientHeight || window.innerHeight;
   camera.aspect = w / Math.max(1, h);
   camera.updateProjectionMatrix();
   renderer.setSize(w, h, false);
 }
-window.addEventListener('resize', resize);
+let viewportFrame = 0;
+function queueResize() {
+  if (viewportFrame) return;
+  viewportFrame = requestAnimationFrame(() => {
+    viewportFrame = 0;
+    resize();
+  });
+}
+window.addEventListener('resize', queueResize);
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', queueResize);
+  window.visualViewport.addEventListener('scroll', queueResize);
+}
 resize();
 
 function placeKitten(time) {
