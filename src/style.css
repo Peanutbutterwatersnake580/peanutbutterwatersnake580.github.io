@@ -1,0 +1,298 @@
+:root {
+  color: #2b2118;
+  font-family: Nunito, "Trebuchet MS", sans-serif;
+  background: #8ec8ee;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  touch-action: manipulation;
+}
+
+#app {
+  position: fixed;
+  inset: 0;
+}
+
+#view {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+#vignette {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  box-shadow: inset 0 0 140px rgba(40, 36, 20, 0.22);
+}
+
+button, .panel, h1, h2, #distance, #best, #banner {
+  font-family: "Lilita One", "Trebuchet MS", sans-serif;
+  font-weight: 400;
+}
+
+#scoreblock {
+  position: absolute;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  pointer-events: none;
+}
+
+#distance {
+  font-size: clamp(32px, 5vw, 64px);
+  line-height: 0.9;
+  color: #fffaf0;
+  -webkit-text-stroke: 8px #2b2118;
+  paint-order: stroke fill;
+  letter-spacing: 0.5px;
+}
+
+#height {
+  margin-top: 2px;
+  font-family: Nunito, sans-serif;
+  font-weight: 800;
+  color: #fff6df;
+  text-shadow: 0 2px 0 #2b2118;
+}
+
+#best {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  padding: 6px 12px;
+  background: #fff6e4;
+  border: 3px solid #2b2118;
+  border-radius: 999px;
+  box-shadow: 3px 3px 0 #2b2118;
+}
+
+#mute {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  border: 3px solid #2b2118;
+  background: #fff6e4;
+  border-radius: 999px;
+  padding: 6px 12px;
+  cursor: pointer;
+  box-shadow: 3px 3px 0 #2b2118;
+}
+
+#mute:active { transform: translate(2px, 2px); box-shadow: none; }
+
+#banner {
+  position: absolute;
+  top: 28%;
+  left: 50%;
+  transform: translateX(-50%) scale(0.6);
+  font-size: clamp(42px, 8vw, 92px);
+  color: #fff4c8;
+  -webkit-text-stroke: 8px #2b2118;
+  paint-order: stroke fill;
+  opacity: 0;
+  pointer-events: none;
+}
+
+#banner.show {
+  animation: pop 0.55s ease-out;
+}
+
+@keyframes pop {
+  0% { opacity: 0; transform: translateX(-50%) scale(0.4) rotate(-6deg); }
+  30% { opacity: 1; transform: translateX(-50%) scale(1.08) rotate(2deg); }
+  100% { opacity: 0; transform: translateX(-50%) scale(1.2) rotate(-2deg); }
+}
+
+#meter {
+  position: absolute;
+  left: 50%;
+  bottom: 58px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: #fff6e4;
+  border: 4px solid #2b2118;
+  border-radius: 16px;
+  padding: 8px 14px;
+  box-shadow: 4px 4px 0 #2b2118;
+}
+
+.col { min-width: 64px; text-align: center; }
+.col span {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 800;
+}
+.col b { font-size: 22px; }
+
+.barwrap {
+  width: min(42vw, 280px);
+  height: 22px;
+  background: #3a241c;
+  border-radius: 8px;
+  border: 3px solid #2b2118;
+  overflow: hidden;
+}
+
+#power {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #ffd15c 0%, #ff8a1e 55%, #e23b2e 100%);
+}
+
+#hint {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 16px;
+  margin: 0;
+  text-align: center;
+  color: #fffaf0;
+  font-weight: 800;
+  text-shadow: 0 2px 0 #2b2118;
+}
+
+#title, #card {
+  position: absolute;
+  z-index: 3;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(560px, calc(100% - 32px));
+  max-height: calc(100% - 24px);
+  overflow: auto;
+}
+
+.panel { pointer-events: auto; }
+
+.hidden { display: none !important; }
+
+.panel {
+  width: min(560px, 100%);
+  background: #fff7e8;
+  border: 6px solid #2b2118;
+  border-radius: 22px;
+  box-shadow: 8px 10px 0 #2b2118;
+  padding: 26px 28px 22px;
+  text-align: center;
+}
+
+.eyebrow {
+  margin: 0;
+  font-family: Nunito, sans-serif;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-size: 12px;
+  color: #8a4b28;
+}
+
+h1 {
+  margin: 6px 0 8px;
+  font-size: clamp(46px, 8vw, 72px);
+  line-height: 0.9;
+  color: #d23b2e;
+}
+
+h2 {
+  margin: 4px 0 8px;
+  font-size: clamp(48px, 8vw, 76px);
+  line-height: 0.9;
+}
+
+.lede, #card-note, #card-best, .bestline {
+  font-family: Nunito, sans-serif;
+  font-weight: 700;
+}
+
+.lede { margin: 0 0 16px; line-height: 1.35; }
+
+#need-js {
+  margin: 12px 0 0;
+  font-family: Nunito, sans-serif;
+  font-weight: 800;
+  font-size: 15px;
+  line-height: 1.35;
+  color: #8d1d1d;
+}
+
+button, #mute {
+  touch-action: manipulation;
+}
+
+button#start, button#again, #pad button {
+  font-family: "Lilita One", "Trebuchet MS", sans-serif;
+  border: 4px solid #2b2118;
+  background: #e23b2e;
+  color: #fffaf0;
+  border-radius: 14px;
+  padding: 10px 22px;
+  font-size: 22px;
+  cursor: pointer;
+  box-shadow: 4px 4px 0 #2b2118;
+}
+
+button#start:active, button#again:active, #pad button:active {
+  transform: translate(3px, 3px);
+  box-shadow: none;
+}
+
+@media (max-height: 720px) {
+  .panel { padding: 14px 16px 12px; }
+  h1 { font-size: 40px; }
+  .lede { margin-bottom: 10px; font-size: 15px; }
+}
+
+#pad {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  display: flex;
+  gap: 8px;
+}
+
+#pad button { padding: 10px 14px; min-width: 52px; }
+
+#app[data-phase="aim"] #title,
+#app[data-phase="flight"] #title,
+#app[data-phase="result"] #title,
+#app[data-phase="title"] #meter,
+#app[data-phase="title"] #hint,
+#app[data-phase="title"] #pad,
+#app[data-phase="title"] #scoreblock,
+#app[data-phase="title"] #best,
+#app[data-phase="aim"] #scoreblock,
+#app[data-phase="flight"] #meter,
+#app[data-phase="flight"] #pad,
+#app[data-phase="result"] #meter {
+  display: none;
+}
+
+#boot-error {
+  position: absolute;
+  z-index: 9;
+  left: 16px;
+  right: 16px;
+  top: 80px;
+  margin: 0;
+  padding: 12px;
+  background: #fff6e4;
+  color: #8d1d1d;
+  border: 4px solid #2b2118;
+  white-space: pre-wrap;
+}
+
+@media (max-width: 640px) {
+  #hint { display: none; }
+  #meter { bottom: 78px; }
+}

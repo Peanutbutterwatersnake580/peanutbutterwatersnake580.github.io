@@ -1,0 +1,176 @@
+import assert from 'node:assert/strict';
+import { buildCourse, resetCourse } from './course.js';
+import { createKitten, runUntilDone, step } from './physics.js';
+import { HIT } from './propspec.js';
+import {
+  aimVector,
+  barrelMuzzle,
+  feetFromTravel,
+  launchPoint,
+  POWER_MAX,
+  POWER_MIN,
+} from './tune.js';
+
+function prop(type, x, y) {
+  const spec = HIT[type];
+  return {
+    type,
+    x,
+    y: y ?? spec.cy,
+    hw: spec.hw,
+    hh: spec.hh,
+    spent: false,
+    ready: 0,
+  };
+}
+
+function shot(angle, power, props, frames = 30 * 60) {
+  resetCourse(props);
+  return runUntilDone(angle, power, props, frames);
+}
+
+// The aim vector is the only barrel direction. 0° is +X, 90° is +Y.
+{
+  const flat = aimVector(0);
+  const up = aimVector(90);
+  assert.ok(Math.abs(flat.x - 1) < 1e-9 && Math.abs(flat.y) < 1e-9);
+  assert.ok(Math.abs(up.y - 1) < 1e-9 && Math.abs(up.x) < 1e-9);
+  const muzzleUp = barrelMuzzle(90);
+  const muzzleFlat = barrelMuzzle(0);
+  assert.ok(muzzleUp.y > muzzleFlat.y + 50, 'a vertical barrel sits above a flat one');
+  assert.ok(Math.abs(muzzleUp.x - muzzleFlat.x) > 50, 'a vertical barrel pulls the muzzle back');
+}
+
+// A lofted shot climbs, then the grass ends it, and distance is horizontal travel / 30.
+{
+  const k = createKitten(40, 30);
+  const startY = k.y;
+  let peak = k.y;
+  let bounced = false;
+  let guard = 0;
+  while (!k.dead && guard < 800) {
+    const event = step(k, []);
+    if (k.y > peak) peak = k.y;
+    if (event === 'bounce') bounced = true;
+    guard += 1;
+  }
+  assert.equal(k.cause, 'landed');
+  assert.ok(peak > startY + 40, 'the kitten should climb');
+  assert.ok(bounced, 'a hard landing bounces before the soft one that ends it');
+  assert.ok(k.x > k.startX + 200, 'flight carries forward');
+  assert.equal(feetFromTravel(k.startX, k.x), Math.max(0, Math.round((k.x - k.startX) / 30)));
+}
+
+// Nothing on the field can touch the kitten during the 15-frame arming window.
+{
+  const k = createKitten(20, 36);
+  const crate = prop('tnt', k.x, k.y);
+  let hit = null;
+  for (let i = 0; i < 14; i++) hit = step(k, [crate]) || hit;
+  assert.equal(hit, null);
+  assert.equal(crate.spent, false);
+  assert.equal(k.dead, false);
+}
+
+// Boosts match the Flash formulas. Falling is vy < 0.
+{
+  const k = createKitten(10, 20);
+  k.frame = 20;
+  k.x = 100;
+  k.y = 30;
+  k.vx = 20;
+  k.vy = -10;
+  const crate = prop('tnt', 100, 30);
+  assert.equal(step(k, [crate]), 'tnt');
+  // Gravity ticks once before the overlap test, so the boost sees vy = -11.
+  assert.equal(k.vy, 28 + 11);
+  assert.equal(k.vx, 5 + 20 * 1.2);
+  assert.equal(crate.spent, true);
+}
+
+{
+  const k = createKitten(10, 20);
+  k.frame = 20;
+  k.x = 100;
+  k.y = 80;
+  k.vx = 20;
+  k.vy = 12;
+  const bomb = prop('balloon', 100, 80);
+  assert.equal(step(k, [bomb]), 'balloon');
+  assert.equal(k.vy, 28 + 11);
+  assert.equal(k.vx, 7 + 20 * 1.2);
+}
+
+{
+  const k = createKitten(10, 20);
+  k.frame = 20;
+  k.x = 100;
+  k.y = 20;
+  k.vx = 22;
+  k.vy = -8;
+  const bed = prop('trampoline', 100);
+  assert.equal(step(k, [bed]), 'trampoline');
+  assert.equal(k.vx, 22);
+  assert.ok(Math.abs(k.vy - 9 * 1.4) < 1e-9);
+  assert.equal(bed.spent, false);
+}
+
+{
+  const k = createKitten(10, 20);
+  k.frame = 20;
+  k.x = 100;
+  k.y = 20;
+  k.vx = 22;
+  k.vy = 8;
+  const spikes = prop('spikes', 100);
+  assert.equal(step(k, [spikes]), null);
+  assert.equal(k.dead, false);
+}
+
+{
+  const k = createKitten(10, 20);
+  k.frame = 20;
+  k.x = 100;
+  k.y = 20;
+  k.vx = 22;
+  k.vy = -8;
+  const spikes = prop('spikes', 100);
+  assert.equal(step(k, [spikes]), 'spikes');
+  assert.equal(k.cause, 'spikes');
+  assert.equal(k.vx, 0);
+}
+
+{
+  const k = createKitten(10, 20);
+  k.frame = 20;
+  k.x = 100;
+  k.y = 42;
+  k.vx = 10;
+  k.vy = 4;
+  const plant = prop('venus', 100);
+  assert.equal(step(k, [plant]), 'venus');
+  assert.equal(k.cause, 'venus');
+}
+
+// A full bar flies on its own. A low bar is a short hop. The field still
+// rewards the default aim when the bar is full.
+{
+  const course = buildCourse();
+  assert.equal(buildCourse().length, course.length);
+  assert.equal(buildCourse()[0].x, course[0].x);
+
+  const natural = shot(32, POWER_MAX, course);
+  const lob = shot(70, POWER_MAX, course);
+  const weak = shot(32, POWER_MIN, course);
+  assert.equal(feetFromTravel(natural.kitten.startX, natural.kitten.x), 1396);
+  assert.equal(natural.kitten.cause, 'landed');
+  assert.ok(natural.hits.includes('balloon') && natural.hits.includes('tnt'));
+  assert.equal(feetFromTravel(lob.kitten.startX, lob.kitten.x), 320);
+  assert.equal(lob.kitten.cause, 'landed');
+  assert.ok(feetFromTravel(weak.kitten.startX, weak.kitten.x) < 20);
+
+  const launched = launchPoint(30);
+  assert.ok(launched.y > 15, 'the muzzle clears the grass');
+}
+
+console.log('physics ok');

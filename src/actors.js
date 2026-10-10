@@ -1,0 +1,378 @@
+import * as THREE from 'three';
+import { shell } from './look.js';
+import { BARREL_LEN, CANNON_X, PIVOT_X, PIVOT_Y } from './tune.js';
+
+const FUR = 0xf4a04a;
+const FUR_DARK = 0xd4782c;
+const BELLY = 0xffe3c2;
+const EAR = 0xf3a0b0;
+const NOSE = 0xe56b86;
+const WOOD = 0x8d522c;
+const WOOD_DARK = 0x69381c;
+const METAL = 0x5c6772;
+const METAL_DARK = 0x2c333a;
+const BRASS = 0xd1a85a;
+const RED = 0xd23b2e;
+const CREAM = 0xfff6e6;
+
+const BALLOON_COLORS = [0xe23b3b, 0xf2c14e, 0x3d8fe0, 0x7ac943, 0xf28a2e];
+
+function mesh(geo, material, x, y, z) {
+  const m = new THREE.Mesh(geo, material);
+  m.position.set(x, y, z);
+  return m;
+}
+
+export function createKitten(look) {
+  const root = new THREE.Group();
+  const { mat, outline } = look;
+
+  const bodyGeo = new THREE.SphereGeometry(13, 16, 12);
+  const body = mesh(bodyGeo, mat(FUR), 0, 0, 0);
+  body.scale.set(1.28, 0.9, 0.86);
+  root.add(body);
+  shell(body, root, outline, 0.08);
+
+  const belly = mesh(new THREE.SphereGeometry(8, 12, 10), mat(BELLY), 4, -3.5, 5);
+  belly.scale.set(1.05, 0.75, 0.62);
+  root.add(belly);
+
+  const stripeGeo = new THREE.SphereGeometry(6.5, 10, 8);
+  for (const x of [-7, -1, 5]) {
+    const stripe = mesh(stripeGeo, mat(FUR_DARK), x, 6.2, 1);
+    stripe.scale.set(0.85, 0.28, 0.7);
+    root.add(stripe);
+  }
+
+  const head = mesh(new THREE.SphereGeometry(10, 16, 12), mat(FUR), 16, 5, 1);
+  root.add(head);
+  shell(head, root, outline, 0.08);
+
+  // Dome sits on the crown and opens toward +X, so the face stays visible.
+  // Ears are added after it and poke out of the top.
+  const capGeo = new THREE.SphereGeometry(10.4, 16, 12, 0, Math.PI * 2, 0, Math.PI * 0.48);
+  const cap = mesh(capGeo, mat(0xc4322a), 13.2, 9.6, 1);
+  root.add(cap);
+  shell(cap, root, outline, 0.05);
+  const rim = mesh(new THREE.TorusGeometry(9.6, 0.72, 6, 18), mat(BRASS), 13.2, 9.7, 1);
+  rim.rotation.x = Math.PI / 2;
+  root.add(rim);
+  const crest = mesh(new THREE.BoxGeometry(2.4, 4.2, 1.2), mat(BRASS), 11.4, 18.6, 1);
+  crest.rotation.z = 0.35;
+  root.add(crest);
+
+  const earGeo = new THREE.ConeGeometry(4.4, 9, 5);
+  const earInGeo = new THREE.ConeGeometry(2.4, 5, 5);
+  const earL = mesh(earGeo, mat(FUR), 13, 14.5, 5);
+  const earR = mesh(earGeo, mat(FUR_DARK), 12, 13.5, -4);
+  earR.scale.setScalar(0.85);
+  root.add(earL, earR);
+  shell(earL, root, outline, 0.1);
+  const earIn = mesh(earInGeo, mat(EAR), 13.4, 13.6, 6.2);
+  root.add(earIn);
+
+  const eyeWhite = mesh(new THREE.SphereGeometry(3.3, 12, 10), mat(0xfffaf4), 21.2, 7.1, 7.2);
+  const pupil = mesh(new THREE.SphereGeometry(1.65, 10, 8), mat(0x1c1720), 22.6, 6.7, 9);
+  const glint = mesh(new THREE.SphereGeometry(0.62, 8, 6), mat(CREAM), 23.1, 8, 9.7);
+  root.add(eyeWhite, pupil, glint);
+
+  const nose = mesh(new THREE.SphereGeometry(1.45, 8, 6), mat(NOSE), 25.2, 4.3, 4.2);
+  nose.scale.set(1.15, 0.75, 0.85);
+  root.add(nose);
+
+  const cheek = mesh(new THREE.SphereGeometry(2.1, 8, 6), mat(0xf0a090), 18.5, 3.2, 8.4);
+  cheek.scale.set(1, 0.7, 0.5);
+  root.add(cheek);
+
+  const whisker = new THREE.CylinderGeometry(0.18, 0.18, 8, 4);
+  whisker.rotateZ(-Math.PI / 2);
+  for (const [y, z, tilt] of [[5.4, 6.5, 0.25], [4.2, 6.8, 0], [3.1, 6.4, -0.22]]) {
+    const w = mesh(whisker, mat(0x4a4038), 24, y, z);
+    w.rotation.z = tilt;
+    root.add(w);
+  }
+
+  const collar = mesh(new THREE.TorusGeometry(6.2, 1.05, 6, 14), mat(RED), 10, 3.2, 1);
+  collar.rotation.y = Math.PI / 2;
+  root.add(collar);
+  const bell = mesh(new THREE.SphereGeometry(1.5, 8, 6), mat(BRASS), 12.2, -0.4, 6.2);
+  root.add(bell);
+
+  const tailGeo = new THREE.SphereGeometry(1, 8, 6);
+  const blobs = [
+    [-15, 1, 0, 3.3],
+    [-19, 5, 1, 2.7],
+    [-21, 10, 1, 2.2],
+    [-19.5, 14.5, 1, 1.7],
+  ];
+  for (const [x, y, z, r] of blobs) {
+    const t = mesh(tailGeo, mat(FUR), x, y, z);
+    t.scale.setScalar(r);
+    root.add(t);
+    shell(t, root, outline, 0.12);
+  }
+
+  const legGeo = new THREE.CapsuleGeometry(2.3, 6, 3, 6);
+  const pawGeo = new THREE.SphereGeometry(2.5, 8, 6);
+  for (const [x, z] of [[8, 5], [8, -4], [-7, 5], [-7, -4]]) {
+    const leg = mesh(legGeo, mat(FUR), x, -10, z);
+    root.add(leg);
+    const paw = mesh(pawGeo, mat(BELLY), x + 1.2, -15.2, z);
+    paw.scale.set(1.1, 0.55, 0.9);
+    root.add(paw);
+  }
+
+  // Nose is local +X. rotation.z = aim angle points that nose along the barrel.
+  return { mesh: root, eye: eyeWhite };
+}
+
+export function createCannon(look) {
+  const root = new THREE.Group();
+  root.position.set(CANNON_X, 0, 0);
+  const { mat, outline } = look;
+
+  const wheelGeo = new THREE.CylinderGeometry(18, 18, 7, 12);
+  const hubGeo = new THREE.CylinderGeometry(5, 5, 9, 8);
+  const spokeGeo = new THREE.BoxGeometry(28, 2.2, 2);
+  for (const z of [-22, 22]) {
+    const wheel = mesh(wheelGeo, mat(WOOD_DARK), -4, 18, z);
+    wheel.rotation.x = Math.PI / 2;
+    root.add(wheel);
+    shell(wheel, root, outline, 0.05);
+    const hub = mesh(hubGeo, mat(BRASS), -4, 18, z);
+    hub.rotation.x = Math.PI / 2;
+    root.add(hub);
+    for (let i = 0; i < 4; i++) {
+      const spoke = mesh(spokeGeo, mat(WOOD), -4, 18, z);
+      spoke.rotation.z = (i * Math.PI) / 4;
+      root.add(spoke);
+    }
+  }
+
+  const axle = mesh(new THREE.CylinderGeometry(2.2, 2.2, 40, 8), mat(METAL_DARK), -4, 18, 0);
+  axle.rotation.x = Math.PI / 2;
+  root.add(axle);
+
+  const bed = mesh(new THREE.BoxGeometry(58, 14, 30), mat(WOOD), 2, 30, 0);
+  root.add(bed);
+  shell(bed, root, outline, 0.04);
+  const cheekGeo = new THREE.BoxGeometry(16, 18, 4);
+  root.add(mesh(cheekGeo, mat(WOOD_DARK), 8, 40, 16));
+  root.add(mesh(cheekGeo, mat(WOOD_DARK), 8, 40, -16));
+
+  const pivot = new THREE.Group();
+  pivot.position.set(PIVOT_X, PIVOT_Y, 0);
+  root.add(pivot);
+
+  const barrelGeo = new THREE.CylinderGeometry(16, 11, BARREL_LEN, 14);
+  const barrel = mesh(barrelGeo, mat(METAL), BARREL_LEN / 2, 0, 0);
+  barrel.rotation.z = -Math.PI / 2;
+  pivot.add(barrel);
+  shell(barrel, pivot, outline, 0.045);
+
+  const ringGeo = new THREE.TorusGeometry(14.2, 1.7, 6, 16);
+  for (const t of [0.18, 0.78]) {
+    const ring = mesh(ringGeo, mat(METAL_DARK), BARREL_LEN * t, 0, 0);
+    ring.rotation.y = Math.PI / 2;
+    pivot.add(ring);
+  }
+
+  // The bore faces the camera so it reads as a dark muzzle from the side.
+  const mouth = mesh(new THREE.CircleGeometry(9.5, 14), mat(0x16191d), BARREL_LEN + 1, 0, 0);
+  pivot.add(mouth);
+
+  const tickGeo = new THREE.SphereGeometry(3.2, 8, 6);
+  const tickMat = new THREE.MeshBasicMaterial({ color: 0xfff4c4 });
+  const ticks = new THREE.Group();
+  for (let i = 0; i < 6; i++) {
+    ticks.add(mesh(tickGeo, tickMat, BARREL_LEN + 20 + i * 26, 0, 0));
+  }
+  pivot.add(ticks);
+
+  const muzzle = new THREE.Object3D();
+  muzzle.position.set(BARREL_LEN, 0, 0);
+  pivot.add(muzzle);
+
+  return { root, pivot, ticks, muzzle };
+}
+
+function crate(look) {
+  const root = new THREE.Group();
+  const box = mesh(new THREE.BoxGeometry(50, 46, 40), look.tnt, 0, 26, 0);
+  root.add(box);
+  shell(box, root, look.outline, 0.04);
+  return { mesh: root, parts: {} };
+}
+
+function trampoline(look) {
+  const root = new THREE.Group();
+  const { mat, outline } = look;
+  const legGeo = new THREE.CylinderGeometry(1.6, 1.8, 16, 6);
+  for (const x of [-26, 26]) {
+    root.add(mesh(legGeo, mat(0xc5ced6), x, 8, 8));
+    root.add(mesh(legGeo, mat(0xc5ced6), x, 8, -8));
+  }
+  const frame = mesh(new THREE.BoxGeometry(64, 4, 28), mat(METAL_DARK), 0, 16, 0);
+  root.add(frame);
+  const bed = mesh(new THREE.BoxGeometry(58, 8, 24), mat(RED), 0, 21, 0);
+  root.add(bed);
+  shell(bed, root, outline, 0.05);
+  const stripe = mesh(new THREE.BoxGeometry(58, 2, 6), mat(CREAM), 0, 25.2, 0);
+  root.add(stripe);
+  return { mesh: root, parts: { bed, stripe } };
+}
+
+function spikes(look) {
+  const root = new THREE.Group();
+  const { mat, outline } = look;
+  const base = mesh(new THREE.BoxGeometry(78, 5, 28), mat(0x8d949c), 0, 2.5, 0);
+  root.add(base);
+  const cone = new THREE.ConeGeometry(7, 30, 6);
+  for (let i = 0; i < 5; i++) {
+    const spike = mesh(cone, mat(i % 2 ? 0xd5dee8 : 0xb7c2cc), -28 + i * 14, 19, 0);
+    root.add(spike);
+    shell(spike, root, outline, 0.06);
+  }
+  return { mesh: root, parts: {} };
+}
+
+function venus(look) {
+  const root = new THREE.Group();
+  const { mat, outline } = look;
+  const leafGeo = new THREE.SphereGeometry(8, 10, 8);
+  for (const [x, z, ry] of [[-10, 4, 0.4], [10, 2, -0.3], [0, -6, 0.2]]) {
+    const leaf = mesh(leafGeo, mat(0x2f8a3a), x, 6, z);
+    leaf.scale.set(1.4, 0.45, 0.8);
+    leaf.rotation.z = ry;
+    root.add(leaf);
+  }
+  const stem = mesh(new THREE.CylinderGeometry(3.4, 4.5, 28, 7), mat(0x2c7d34), 0, 20, 0);
+  root.add(stem);
+  const head = mesh(new THREE.SphereGeometry(16, 14, 12), mat(0x3caf4e), 0, 46, 0);
+  head.scale.set(1.05, 0.9, 0.95);
+  root.add(head);
+  shell(head, root, outline, 0.06);
+  const mouth = mesh(new THREE.SphereGeometry(8, 10, 8), mat(0x6a2040), 6, 42, 4);
+  mouth.scale.set(0.7, 0.45, 0.6);
+  root.add(mouth);
+  const toothGeo = new THREE.ConeGeometry(1.5, 5, 4);
+  for (const [x, y, flip] of [[2, 46, 1], [6, 47, 1], [10, 45, 1], [3, 38, -1], [8, 37, -1]]) {
+    const tooth = mesh(toothGeo, mat(CREAM), x, y, 8);
+    if (flip < 0) tooth.rotation.z = Math.PI;
+    root.add(tooth);
+  }
+  const eyeGeo = new THREE.SphereGeometry(3.2, 10, 8);
+  const eye = mesh(eyeGeo, mat(0xfffaf4), 8, 54, 10);
+  const pupil = mesh(new THREE.SphereGeometry(1.5, 8, 6), mat(0x1c1720), 9.4, 53.4, 12);
+  root.add(eye, pupil);
+  const spot = mesh(new THREE.SphereGeometry(3, 8, 6), mat(0x2a7a34), -6, 52, 8);
+  spot.scale.set(1, 0.6, 0.5);
+  root.add(spot);
+  return { mesh: root, parts: { head } };
+}
+
+function balloon(look, salt) {
+  const root = new THREE.Group();
+  const { mat, outline } = look;
+  const color = BALLOON_COLORS[Math.abs(salt) % BALLOON_COLORS.length];
+  const bomb = mesh(new THREE.SphereGeometry(12, 14, 12), mat(0x2a2a2a), 0, -14, 0);
+  root.add(bomb);
+  shell(bomb, root, outline, 0.06);
+  const fuse = mesh(new THREE.CylinderGeometry(0.7, 0.7, 8, 5), mat(0xc2a15a), 2, -4, 3);
+  fuse.rotation.z = 0.5;
+  root.add(fuse);
+  const spark = mesh(new THREE.SphereGeometry(1.6, 6, 6), mat(0xffb703), 4, 0, 4);
+  root.add(spark);
+  const bag = mesh(new THREE.SphereGeometry(16, 16, 12), mat(color), 0, 18, 0);
+  bag.scale.set(0.92, 1.08, 0.92);
+  root.add(bag);
+  shell(bag, root, outline, 0.06);
+  const knot = mesh(new THREE.SphereGeometry(2.2, 6, 5), mat(color), 0, 2, 0);
+  root.add(knot);
+  const string = mesh(new THREE.CylinderGeometry(0.35, 0.35, 16, 4), mat(0x4a4038), 0, -6, 0);
+  root.add(string);
+  const shine = mesh(new THREE.SphereGeometry(4, 8, 6), new THREE.MeshBasicMaterial({ color: 0xfffaf0 }), -5, 24, 8);
+  root.add(shine);
+  return { mesh: root, parts: { spark } };
+}
+
+export function createProp(type, look, salt) {
+  if (type === 'tnt') return crate(look);
+  if (type === 'trampoline') return trampoline(look);
+  if (type === 'spikes') return spikes(look);
+  if (type === 'venus') return venus(look);
+  return balloon(look, salt);
+}
+
+export function createStake(look) {
+  const root = new THREE.Group();
+  const { mat } = look;
+  const pole = mesh(new THREE.BoxGeometry(4, 78, 3), mat(0xf4f0e4), 0, 39, 0);
+  root.add(pole);
+  for (let i = 0; i < 5; i++) {
+    const band = mesh(new THREE.BoxGeometry(5.5, 7, 4), mat(i % 2 ? RED : 0xf7f3ea), 0, 18 + i * 12, 0);
+    root.add(band);
+  }
+  const flag = mesh(new THREE.BoxGeometry(30, 16, 2), mat(RED), 18, 70, 0);
+  root.add(flag);
+  root.visible = false;
+  return root;
+}
+
+export function createParticles(look, parent) {
+  const geo = new THREE.PlaneGeometry(1, 1);
+  const pool = [];
+  for (let i = 0; i < 280; i++) {
+    const material = new THREE.MeshBasicMaterial({
+      map: look.soft,
+      color: 0xffffff,
+      transparent: true,
+      depthWrite: false,
+    });
+    const m = new THREE.Mesh(geo, material);
+    m.visible = false;
+    m.renderOrder = 2;
+    parent.add(m);
+    pool.push({ mesh: m, life: 0, max: 1, vx: 0, vy: 0 });
+  }
+
+  function spawn(x, y, color, count, speed, life, size) {
+    let made = 0;
+    for (let i = 0; i < pool.length && made < count; i++) {
+      const p = pool[i];
+      if (p.life > 0) continue;
+      const a = Math.random() * Math.PI * 2;
+      const s = speed * (0.35 + Math.random() * 0.85);
+      p.vx = Math.cos(a) * s;
+      p.vy = Math.abs(Math.sin(a)) * s * 0.8 + speed * 0.15;
+      p.life = life * (0.7 + Math.random() * 0.5);
+      p.max = p.life;
+      p.mesh.visible = true;
+      p.mesh.position.set(x, y, 24);
+      p.mesh.scale.setScalar(size * (0.55 + Math.random()));
+      p.mesh.material.color.set(color);
+      p.mesh.material.opacity = 1;
+      made += 1;
+    }
+  }
+
+  function update(dt) {
+    for (let i = 0; i < pool.length; i++) {
+      const p = pool[i];
+      if (p.life <= 0) continue;
+      p.life -= dt;
+      if (p.life <= 0) {
+        p.mesh.visible = false;
+        continue;
+      }
+      p.vy -= 40 * dt;
+      p.mesh.position.x += p.vx * dt;
+      p.mesh.position.y += p.vy * dt;
+      const u = p.life / p.max;
+      p.mesh.material.opacity = Math.max(0, u);
+      p.mesh.scale.multiplyScalar(1 + dt * 0.8);
+    }
+  }
+
+  return { spawn, update };
+}

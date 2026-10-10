@@ -1,0 +1,19 @@
+{
+  "name": "kitten-cannon",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build && cp dist/kitten_cannon.html docs/kitten_cannon.html",
+    "preview": "vite preview",
+    "test": "node src/sim.test.mjs"
+  },
+  "dependencies": {
+    "three": "^0.180.0"
+  },
+  "devDependencies": {
+    "vite": "^7.1.0",
+    "vite-plugin-singlefile": "^2.3.3"
+  }
+}

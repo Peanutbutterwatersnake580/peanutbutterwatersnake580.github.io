@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Kitten Cannon</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body>
+  <div id="app" data-phase="title">
+    <canvas id="view"></canvas>
+    <div id="vignette"></div>
+
+    <header id="hud">
+      <div id="scoreblock">
+        <div id="distance">0 ft</div>
+        <div id="height"></div>
+      </div>
+      <div id="best"></div>
+      <button id="mute" type="button">Sound on</button>
+      <div id="banner"></div>
+      <div id="meter">
+        <div class="col">
+          <span>Angle</span>
+          <b id="angle">28°</b>
+        </div>
+        <div class="barwrap" aria-hidden="true">
+          <div id="power"></div>
+        </div>
+        <div class="col">
+          <span>Power</span>
+          <b id="power-label">0%</b>
+        </div>
+      </div>
+      <p id="hint">↑ ↓ aim &nbsp;&nbsp; enter or space fires &nbsp;&nbsp; R retry &nbsp;&nbsp; M mute</p>
+    </header>
+
+    <div id="title">
+      <div class="panel">
+        <p class="eyebrow">a three.js tribute to the 2005 flash game</p>
+        <h1>Kitten Cannon</h1>
+        <p class="lede">Aim the barrel, fire when the bar is full, and see how far the kitty flies. Bombs and trampolines throw it farther. Spikes and flytraps end the ride.</p>
+        <button id="start" type="button">Start</button>
+        <p id="need-js">Messages can show this card, and it will not run the game. Open this page in Safari.</p>
+        <p class="bestline" id="title-best"></p>
+      </div>
+    </div>
+
+    <div id="card" class="hidden">
+      <div class="panel">
+        <p class="eyebrow" id="card-kicker">Distance</p>
+        <h2 id="card-feet">0 ft</h2>
+        <p id="card-note"></p>
+        <p id="card-best"></p>
+        <button id="again" type="button">Fire again</button>
+      </div>
+    </div>
+
+    <div id="pad">
+      <button type="button" data-act="down" aria-label="Lower the barrel">▼</button>
+      <button type="button" data-act="up" aria-label="Raise the barrel">▲</button>
+      <button type="button" data-act="fire" id="pad-fire">Fire</button>
+    </div>
+  </div>
+  <script>
+    window.addEventListener('error', (event) => {
+      const pre = document.createElement('pre');
+      pre.id = 'boot-error';
+      pre.textContent = event.message || String(event.error);
+      document.body.appendChild(pre);
+    });
+  </script>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
