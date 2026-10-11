@@ -77,12 +77,12 @@ export function createScenery(scene, look) {
   // at this grazing angle; the tufts carry the detail instead.
   const grass = look.mat(0x5eae3c);
   const dirt = look.mat(0xc4894e);
-  // The aim view looks below the old slab and showed sky under the dirt.
-  // Top stays at y=0. The extra depth is the same brown, continued down.
-  const ground = new THREE.Mesh(new THREE.BoxGeometry(300000, 420, 240), [
+  // Top stays at y=0. A fullscreen phone looks lower than the browser tab,
+  // so the dirt continues well past the bottom of that view.
+  const ground = new THREE.Mesh(new THREE.BoxGeometry(300000, 1800, 640), [
     dirt, dirt, grass, dirt, dirt, dirt,
   ]);
-  ground.position.set(146000, -210, -10);
+  ground.position.set(146000, -900, 80);
   scene.add(ground);
 
   scene.add(ridge(0x8ed468, 78, 42, -160, 0.55, 0.4));
@@ -183,30 +183,131 @@ export function createScenery(scene, look) {
   };
 }
 
+function peakShape(kind, rng) {
+  const j = () => (rng() - 0.5) * 0.14;
+  if (kind < 0.22) {
+    return [
+      { t: -0.2 + j(), h: 0.16 },
+      { t: 0.02 + j(), h: 1 },
+      { t: 0.18 + j(), h: 0.14 },
+    ];
+  }
+  if (kind < 0.44) {
+    return [
+      { t: -0.78, h: 0.1 },
+      { t: -0.25, h: 0.4 },
+      { t: 0.18 + j(), h: 1 },
+      { t: 0.4, h: 0.22 },
+    ];
+  }
+  if (kind < 0.66) {
+    return [
+      { t: -0.58, h: 0.2 },
+      { t: -0.32 + j(), h: 0.78 + rng() * 0.22 },
+      { t: -0.04, h: 0.26 },
+      { t: 0.3 + j(), h: 1 },
+      { t: 0.52, h: 0.14 },
+    ];
+  }
+  if (kind < 0.84) {
+    return [
+      { t: -0.72, h: 0.32 },
+      { t: -0.22 + j(), h: 0.92 },
+      { t: 0.24, h: 0.66 },
+      { t: 0.58, h: 0.28 },
+    ];
+  }
+  return [
+    { t: -0.64, h: 0.18 },
+    { t: -0.36, h: 0.96 },
+    { t: 0.26 + j(), h: 0.9 },
+    { t: 0.52, h: 0.2 },
+  ];
+}
+
 function mountainRange(scene, opts) {
   const span = 4200;
-  const step = 230;
   const tiles = 3;
-  const count = Math.round((span * tiles) / step);
+  const length = span * tiles;
   const rng = mulberry32(opts.seed);
+  const samples = [{ x: 0, y: -36 }];
+  let x = 0;
+  while (x < length - 400) {
+    const roll = rng();
+    let kind = 4;
+    let width = 640 + rng() * 420;
+    if (roll < 0.22) {
+      kind = 0;
+      width = 150 + rng() * 160;
+    } else if (roll < 0.44) {
+      kind = 1;
+      width = 560 + rng() * 460;
+    } else if (roll < 0.66) {
+      kind = 2;
+      width = 420 + rng() * 280;
+    } else if (roll < 0.84) {
+      kind = 3;
+      width = 480 + rng() * 340;
+    }
+    const valley = 320 + rng() * 560;
+    const left = x + valley;
+    const right = Math.min(length, left + width);
+    if (left > length - 160) break;
+    const peak = opts.height * (kind === 0 ? 0.72 + rng() * 0.4 : 0.38 + rng() * 0.55);
+    samples.push({ x: left, y: -36 });
+    const shape = peakShape([0.05, 0.3, 0.55, 0.75, 0.92][kind], rng);
+    for (let i = 0; i < shape.length; i++) {
+      const p = shape[i];
+      samples.push({
+        x: left + ((p.t + 1) * 0.5) * (right - left),
+        y: -20 + peak * p.h,
+      });
+    }
+    samples.push({ x: right, y: -36 });
+    x = right;
+  }
+  samples.push({ x: length, y: -36 });
+  for (let i = 1; i < samples.length; i++) {
+    if (samples[i].x <= samples[i - 1].x) samples[i].x = samples[i - 1].x + 6;
+  }
+
   const positions = [];
   const indices = [];
   const caps = [];
   const capIndex = [];
-  for (let i = 0; i <= count; i++) {
-    const x = i * step;
-    const peak = i % 2 === 1;
-    const lift = peak ? opts.height * (0.42 + rng() * 0.7) : opts.height * rng() * 0.16;
-    positions.push(x, lift, 0, x, -36, 0);
-    if (peak && opts.snow) {
+  for (let i = 0; i < samples.length; i++) {
+    positions.push(samples[i].x, samples[i].y, 0, samples[i].x, -36, 0);
+  }
+  if (opts.snow) {
+    for (let i = 1; i < samples.length - 1; i++) {
+      const y = samples[i].y;
+      if (y < opts.height * 0.42) continue;
+      if (y < samples[i - 1].y || y < samples[i + 1].y) continue;
       const n = caps.length / 3;
-      const cap = lift * 0.62;
+      const tip = samples[i];
+      const left = samples[i - 1];
+      const right = samples[i + 1];
+      const shoulder = -20 + (y + 20) * 0.58;
       // Left shoulder, right shoulder, tip. That winds toward +Z, the camera.
-      caps.push(x - step * 0.34, cap, 2, x + step * 0.34, cap, 2, x, lift + 6, 2);
+      caps.push(
+        tip.x + (left.x - tip.x) * 0.42, shoulder, 2,
+        tip.x + (right.x - tip.x) * 0.42, shoulder, 2,
+        tip.x, y + 6, 2,
+      );
       capIndex.push(n, n + 1, n + 2);
     }
+    for (let i = 1; i < samples.length - 2; i++) {
+      const a = samples[i];
+      const b = samples[i + 1];
+      if (a.y < opts.height * 0.5 || b.y < opts.height * 0.5) continue;
+      const n = caps.length / 3;
+      const sa = -20 + (a.y + 20) * 0.7;
+      const sb = -20 + (b.y + 20) * 0.7;
+      caps.push(a.x, sa, 2, b.x, sb, 2, b.x, b.y + 4, 2, a.x, a.y + 4, 2);
+      capIndex.push(n, n + 1, n + 2, n, n + 2, n + 3);
+    }
   }
-  for (let i = 0; i < count; i++) {
+  for (let i = 0; i < samples.length - 1; i++) {
     const a = i * 2;
     indices.push(a, a + 1, a + 2, a + 1, a + 3, a + 2);
   }

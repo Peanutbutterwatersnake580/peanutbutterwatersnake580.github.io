@@ -2,9 +2,9 @@ import * as THREE from 'three';
 import { shell } from './look.js';
 import { BARREL_LEN, CANNON_X, PIVOT_X, PIVOT_Y } from './tune.js';
 
-const FUR = 0xf4a04a;
-const FUR_DARK = 0xd4782c;
-const BELLY = 0xffe3c2;
+const FUR = 0x24222a;
+const FUR_DARK = 0x141318;
+const BELLY = 0xfff8f2;
 const EAR = 0xf3a0b0;
 const NOSE = 0xe56b86;
 const WOOD = 0x8d522c;
@@ -33,16 +33,9 @@ export function createKitten(look) {
   root.add(body);
   shell(body, root, outline, 0.08);
 
-  const belly = mesh(new THREE.SphereGeometry(8, 12, 10), mat(BELLY), 4, -3.5, 5);
-  belly.scale.set(1.05, 0.75, 0.62);
+  const belly = mesh(new THREE.SphereGeometry(8.4, 12, 10), mat(BELLY), 3.2, -2.2, 6.2);
+  belly.scale.set(1.12, 0.95, 0.72);
   root.add(belly);
-
-  const stripeGeo = new THREE.SphereGeometry(6.5, 10, 8);
-  for (const x of [-7, -1, 5]) {
-    const stripe = mesh(stripeGeo, mat(FUR_DARK), x, 6.2, 1);
-    stripe.scale.set(0.85, 0.28, 0.7);
-    root.add(stripe);
-  }
 
   const head = mesh(new THREE.SphereGeometry(10, 16, 12), mat(FUR), 16, 5, 1);
   root.add(head);
@@ -116,12 +109,16 @@ export function createKitten(look) {
   const glint = mesh(new THREE.SphereGeometry(0.62, 8, 6), mat(CREAM), 23.1, 8, 9.7);
   root.add(eyeWhite, pupil, glint);
 
+  const muzzle = mesh(new THREE.SphereGeometry(4.4, 10, 8), mat(BELLY), 20.2, 3.2, 5.4);
+  muzzle.scale.set(1.08, 0.7, 0.82);
+  root.add(muzzle);
+
   const nose = mesh(new THREE.SphereGeometry(1.45, 8, 6), mat(NOSE), 25.2, 4.3, 4.2);
   nose.scale.set(1.15, 0.75, 0.85);
   root.add(nose);
 
-  const cheek = mesh(new THREE.SphereGeometry(2.1, 8, 6), mat(0xf0a090), 18.5, 3.2, 8.4);
-  cheek.scale.set(1, 0.7, 0.5);
+  const cheek = mesh(new THREE.SphereGeometry(3.2, 8, 6), mat(BELLY), 18.2, 3.4, 7.4);
+  cheek.scale.set(1.15, 0.82, 0.72);
   root.add(cheek);
 
   const whisker = new THREE.CylinderGeometry(0.18, 0.18, 8, 4);
@@ -157,8 +154,12 @@ export function createKitten(look) {
   for (const [x, z] of [[8, 5], [8, -4], [-7, 5], [-7, -4]]) {
     const leg = mesh(legGeo, mat(FUR), x, -10, z);
     root.add(leg);
+    // Front socks run higher, the usual tuxedo mittens.
+    const sockH = x > 0 ? 6.4 : 4.2;
+    const sock = mesh(new THREE.CylinderGeometry(2.45, 2.55, sockH, 8), mat(BELLY), x + 0.5, -14.2 + sockH * 0.15, z);
+    root.add(sock);
     const paw = mesh(pawGeo, mat(BELLY), x + 1.2, -15.2, z);
-    paw.scale.set(1.1, 0.55, 0.9);
+    paw.scale.set(1.15, 0.58, 0.95);
     root.add(paw);
   }
 

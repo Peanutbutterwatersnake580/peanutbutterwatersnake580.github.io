@@ -567,7 +567,21 @@ for (const button of document.querySelectorAll('#pad button')) {
 
 function resize() {
   const vv = window.visualViewport;
-  if (vv) {
+  const standalone =
+    window.matchMedia('(display-mode: standalone)').matches ||
+    window.matchMedia('(display-mode: fullscreen)').matches ||
+    window.navigator.standalone === true;
+  // The installed app used to size to the visual viewport and leave a sky-blue
+  // strip under the canvas. Cover the whole screen there. A browser tab still
+  // follows the visual viewport so the address bar can come and go.
+  if (standalone) {
+    app.style.left = '0px';
+    app.style.top = '0px';
+    app.style.width = `${window.innerWidth}px`;
+    app.style.height = `${window.innerHeight}px`;
+    app.style.right = 'auto';
+    app.style.bottom = 'auto';
+  } else if (vv) {
     app.style.left = `${vv.offsetLeft}px`;
     app.style.top = `${vv.offsetTop}px`;
     app.style.width = `${vv.width}px`;

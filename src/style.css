@@ -1,7 +1,7 @@
 :root {
   color: #2b2118;
   font-family: Nunito, "Trebuchet MS", sans-serif;
-  background: #8ec8ee;
+  background: #c4894e;
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-right: env(safe-area-inset-right, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
@@ -19,7 +19,8 @@ html, body {
   overflow: hidden;
   overscroll-behavior: none;
   touch-action: manipulation;
-  background: #8ec8ee;
+  /* A sliver past the canvas should read as dirt, not sky. */
+  background: #c4894e;
 }
 
 #app {
@@ -429,9 +430,21 @@ button#start:active, button#again:active, #pad button:active {
   white-space: pre-wrap;
 }
 
+@media (pointer: coarse), (hover: none), (max-width: 720px) {
+  #pad { display: none; }
+}
+
 @media (max-width: 720px) {
   #hint { display: none; }
-  #meter { bottom: calc(78px + var(--safe-bottom)); }
+  #meter {
+    bottom: calc(14px + var(--safe-bottom));
+    left: calc(72px + var(--safe-left));
+    right: calc(12px + var(--safe-right));
+    width: auto;
+    transform: none;
+    justify-content: center;
+  }
+  #meter .barwrap { width: auto; flex: 1; max-width: 280px; }
   #scoreblock { top: calc(118px + var(--safe-top)); }
   #records {
     top: calc(10px + var(--safe-top));
@@ -483,19 +496,21 @@ button#start:active, button#again:active, #pad button:active {
 @media (max-height: 500px) {
   #hint { display: none; }
   #meter {
-    top: calc(8px + var(--safe-top));
-    bottom: auto;
-    left: calc(12px + var(--safe-left));
-    right: auto;
+    top: auto;
+    bottom: calc(8px + var(--safe-bottom));
+    left: calc(72px + var(--safe-left));
+    right: calc(210px + var(--safe-right));
     transform: none;
-    max-width: calc(100% - 210px - var(--safe-left) - var(--safe-right));
+    width: auto;
+    max-width: none;
     padding: 4px 8px;
     gap: 8px;
+    justify-content: center;
   }
   #meter .col { min-width: 48px; }
   #meter .col span { font-size: 11px; }
   #meter .col b { font-size: 18px; }
-  #meter .barwrap { height: 12px; width: min(28vw, 160px); }
+  #meter .barwrap { height: 12px; width: auto; flex: 1; max-width: 280px; }
   #title, #card {
     top: calc(var(--safe-top) + 8px);
     transform: translate(-50%, 0);
@@ -518,6 +533,12 @@ button#start:active, button#again:active, #pad button:active {
   #records p, .bestline p, #card-best p { line-height: 1.25; gap: 10px; }
   button#start, button#again { font-size: 18px; padding: 6px 14px; }
   #pad button { padding: 8px 12px; font-size: 18px; }
+}
+
+@media (max-height: 500px) and (pointer: coarse),
+  (max-height: 500px) and (hover: none),
+  (max-height: 500px) and (max-width: 720px) {
+  #meter { right: calc(12px + var(--safe-right)); }
 }
 
 @media (max-height: 500px) and (max-width: 980px) {
