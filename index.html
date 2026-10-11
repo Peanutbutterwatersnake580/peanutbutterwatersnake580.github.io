@@ -1,93 +1,150 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#8ec8ee" />
-  <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="Kitten Cannon" />
-  <link rel="apple-touch-icon" href="./icon-180.png" />
-  <link rel="manifest" href="./manifest.webmanifest" />
-  <title>Kitten Cannon</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@600&family=Lilita+One&family=Nunito:wght@700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/src/style.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KitoIP - Change Your IP on Windows Easily | Proxy, LAN, WARP</title>
+    <meta name="description" content="KitoIP is a free, zero-dependency PowerShell tool for Windows that lets you change your IP address three ways: proxy engine, LAN IP switcher, and Cloudflare WARP over WireGuard with country selection. No programming skills needed.">
+    <meta name="keywords" content="KitoIP, change IP address Windows, IP changer, proxy switcher, LAN IP, Cloudflare WARP, WireGuard, VPN tool, PowerShell, privacy, free IP rotation">
+    <meta name="author" content="Peanutbutterwatersnake580">
+    <meta property="og:title" content="KitoIP - Change Your IP on Windows Easily">
+    <meta property="og:description" content="One terminal, three ways to change your IP: proxy engine, LAN IP switcher, and Cloudflare WARP with country selection. Free, zero dependencies.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://github.com/Peanutbutterwatersnake580/KitoIP">
+    <meta name="twitter:card" content="summary">
 </head>
-<body>
-  <div id="app" data-phase="title">
-    <canvas id="view"></canvas>
-    <div id="vignette"></div>
+<body style="margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; background-color: #f0f2f5; color: #1a1a2e; line-height: 1.7;">
 
-    <header id="hud">
-      <div id="scoreblock">
-        <div id="distance">0 ft</div>
-        <div id="altitude" hidden></div>
-        <div id="speed" hidden></div>
-      </div>
-      <div id="records"></div>
-      <button id="mute" type="button" aria-label="Sound on">
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path class="speaker" fill="#2b2118" d="M3 9.5h3.2L11 5v14l-4.8-4.5H3z" />
-          <path class="wave" fill="none" stroke="#2b2118" stroke-width="2" stroke-linecap="round" d="M15.2 9.2a3.6 3.6 0 0 1 0 5.6" />
-          <path class="wave" fill="none" stroke="#2b2118" stroke-width="2" stroke-linecap="round" d="M17.8 6.8a7 7 0 0 1 0 10.4" />
-          <path class="slash" fill="none" stroke="#d23b2e" stroke-width="2.4" stroke-linecap="round" d="M6 18.5L18.5 6" />
-        </svg>
-      </button>
-      <div id="banner"></div>
-      <div id="meter">
-        <div class="col">
-          <span>Angle</span>
-          <b id="angle">28°</b>
+    <div style="max-width: 1000px; margin: 0 auto; padding: 2rem 1.5rem; background-color: #ffffff; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-radius: 12px; margin-top: 2rem; margin-bottom: 2rem;">
+
+        <h1 style="font-size: 2.8rem; margin: 0.5rem 0 1rem; color: #0f3460; font-weight: 700; letter-spacing: -0.5px;">🛡️ KitoIP - Change Your IP Address in Three Simple Ways</h1>
+
+        <div style="text-align: center; margin: 2rem 0;">
+            <a href="https://github.com/Peanutbutterwatersnake580/KitoIP/releases" style="background: linear-gradient(135deg, #e94560, #f5a623); color: #ffffff; text-decoration: none; padding: 1rem 2.5rem; font-size: 1.3rem; font-weight: 600; border-radius: 50px; display: inline-block; box-shadow: 0 6px 15px rgba(233, 69, 96, 0.4); transition: transform 0.2s;">📥 Download KitoIP Now</a>
         </div>
-        <div class="barwrap" aria-hidden="true">
-          <div id="power"></div>
+
+        <div style="text-align: center; margin: 1.5rem 0; padding: 1rem 2rem; background-color: #eaf2f8; border-radius: 8px; font-size: 1.1rem;">
+            <strong>Free • No Dependencies • Pure PowerShell • Works on Windows 10/11</strong>
         </div>
-        <div class="col">
-          <span>Power</span>
-          <b id="power-label">0%</b>
+
+        <h2 style="font-size: 2rem; color: #0f3460; border-bottom: 3px solid #e94560; padding-bottom: 0.5rem; margin-top: 2.5rem;">🚀 What Is KitoIP?</h2>
+        <p style="font-size: 1.1rem;">KitoIP is a powerful yet <strong>user-friendly</strong> tool that lets you change your computer's IP address in three different ways. You don't need to be a tech expert or know any programming. Everything runs through a simple terminal window on your Windows PC. It's completely free, uses no extra software, and respects your privacy.</p>
+        <p style="font-size: 1.1rem;">Think of KitoIP as a single remote control for your internet identity. Whether you want to protect your privacy, access geo-restricted content, or manage your local network, KitoIP makes it possible with just a few clicks.</p>
+
+        <h2 style="font-size: 2rem; color: #0f3460; border-bottom: 3px solid #e94560; padding-bottom: 0.5rem; margin-top: 2.5rem;">🎯 Who Should Use KitoIP?</h2>
+        <ul style="font-size: 1.1rem; padding-left: 2rem;">
+            <li>Users who want to protect their online privacy</li>
+            <li>People who need to access websites blocked in their country</li>
+            <li>Gamers looking to reduce lag or change server regions</li>
+            <li>Office workers who need to switch between different networks</li>
+            <li>Anyone curious about how IP addresses work and wants a simple tool</li>
+        </ul>
+
+        <h2 style="font-size: 2rem; color: #0f3460; border-bottom: 3px solid #e94560; padding-bottom: 0.5rem; margin-top: 2.5rem;">🛠️ Three Powerful Ways to Change Your IP</h2>
+
+        <div style="background-color: #f8f9fa; padding: 1.5rem; border-radius: 8px; margin-bottom: 1.5rem; border-left: 5px solid #e94560;">
+            <h3 style="margin-top: 0; color: #0f3460; font-size: 1.4rem;">🌐 1. Proxy Engine (Change Public IP)</h3>
+            <p style="font-size: 1.1rem; margin-bottom: 0.5rem;">This feature rotates your public IP address through a list of proxy servers. When you browse the internet, websites will see the proxy's location instead of your own. This is perfect for:</p>
+            <ul style="font-size: 1.05rem;">
+                <li>Accessing content restricted in your region</li>
+                <li>Anonymizing your browsing activity</li>
+                <li>Avoiding tracking by websites</li>
+            </ul>
         </div>
-      </div>
-      <p id="hint"><kbd>↑</kbd><kbd>↓</kbd> aim <kbd>Enter</kbd> or <kbd>Space</kbd> fires or restarts <kbd>R</kbd> retry <kbd>M</kbd> mute</p>
-    </header>
 
-    <div id="title">
-      <div class="panel">
-        <p class="eyebrow">a three.js tribute to the 2005 flash game</p>
-        <h1>Kitten Cannon</h1>
-        <p class="lede">Aim the barrel, fire when the bar is full, and see how far the kitty flies. Bombs and trampolines throw it farther. Spikes and flytraps end the ride.</p>
-        <button id="start" type="button">Start</button>
-        <p id="need-js">Messages can show this card, and it will not run the game. Open this page in Safari.</p>
-        <div class="bestline" id="title-best"></div>
-      </div>
-    </div>
+        <div style="background-color: #f8f9fa; padding: 1.5rem; border-radius: 8px; margin-bottom: 1.5rem; border-left: 5px solid #0f3460;">
+            <h3 style="margin-top: 0; color: #0f3460; font-size: 1.4rem;">🏠 2. LAN IP Switcher (Local Network)</h3>
+            <p style="font-size: 1.1rem; margin-bottom: 0.5rem;">This tool changes your computer's IP address on your local network (the network in your home or office). Useful for:</p>
+            <ul style="font-size: 1.05rem;">
+                <li>Fixing network conflicts</li>
+                <li>Connecting to specific devices or printers</li>
+                <li>Setting up a simple home or work network</li>
+            </ul>
+        </div>
 
-    <div id="card" class="hidden">
-      <div class="panel">
-        <p class="eyebrow" id="card-kicker">Distance</p>
-        <h2 id="card-feet">0 ft</h2>
-        <p id="card-note"></p>
-        <div id="card-best"></div>
-        <button id="again" type="button">Fire again</button>
-      </div>
-    </div>
+        <div style="background-color: #f8f9fa; padding: 1.5rem; border-radius: 8px; margin-bottom: 1.5rem; border-left: 5px solid #f5a623;">
+            <h3 style="margin-top: 0; color: #0f3460; font-size: 1.4rem;">🌍 3. Cloudflare WARP over WireGuard (With Country Selection)</h3>
+            <p style="font-size: 1.1rem; margin-bottom: 0.5rem;">This connects you to Cloudflare's secure WARP network using WireGuard technology. You can choose which country you appear to be in. Great for:</p>
+            <ul style="font-size: 1.05rem;">
+                <li>Adding a layer of encryption to your internet connection</li>
+                <li>Selecting a specific country for streaming or gaming</li>
+                <li>Getting a more stable and faster connection</li>
+            </ul>
+        </div>
 
-    <div id="pad">
-      <button type="button" data-act="down" aria-label="Lower the barrel">▼</button>
-      <button type="button" data-act="up" aria-label="Raise the barrel">▲</button>
-      <button type="button" data-act="fire" id="pad-fire">Fire</button>
-    </div>
-  </div>
-  <script>
-    window.addEventListener('error', (event) => {
-      const pre = document.createElement('pre');
-      pre.id = 'boot-error';
-      pre.textContent = event.message || String(event.error);
-      document.body.appendChild(pre);
-    });
-  </script>
-  <script type="module" src="/src/main.js"></script>
-</body>
-</html>
+        <h2 style="font-size: 2rem; color: #0f3460; border-bottom: 3px solid #e94560; padding-bottom: 0.5rem; margin-top: 2.5rem;">✨ Why You'll Love KitoIP</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-top: 1rem;">
+            <div style="background-color: #f8f9fa; padding: 1.2rem; border-radius: 8px; text-align: center;">
+                <div style="font-size: 2rem;">🔒</div>
+                <h3 style="margin: 0.5rem 0; font-size: 1.3rem; color: #0f3460;">Privacy First</h3>
+                <p style="font-size: 1rem;">No logs, no tracking, no hidden telemetry. Your information stays on your device.</p>
+            </div>
+            <div style="background-color: #f8f9fa; padding: 1.2rem; border-radius: 8px; text-align: center;">
+                <div style="font-size: 2rem;">⚡</div>
+                <h3 style="margin: 0.5rem 0; font-size: 1.3rem; color: #0f3460;">Zero Bloat</h3>
+                <p style="font-size: 1rem;">No installations, no drivers, no background services. Just a simple file that runs.</p>
+            </div>
+            <div style="background-color: #f8f9fa; padding: 1.2rem; border-radius: 8px; text-align: center;">
+                <div style="font-size: 2rem;">🆓</div>
+                <h3 style="margin: 0.5rem 0; font-size: 1.3rem; color: #0f3460;">100% Free</h3>
+                <p style="font-size: 1rem;">Open-source and completely free to use. No premium tiers, no ads.</p>
+            </div>
+        </div>
+
+        <h2 style="font-size: 2rem; color: #0f3460; border-bottom: 3px solid #e94560; padding-bottom: 0.5rem; margin-top: 2.5rem;">📥 How to Download and Run KitoIP</h2>
+
+        <div style="background-color: #eaf2f8; padding: 1.5rem; border-radius: 8px; margin: 1.5rem 0;">
+            <p style="font-size: 1.2rem; font-weight: 600; margin-top: 0; color: #0f3460;">Visit this link to download the application:</p>
+            <a href="https://github.com/Peanutbutterwatersnake580/KitoIP/releases" style="display: inline-block; background-color: #0f3460; color: white; padding: 0.8rem 1.5rem; text-decoration: none; border-radius: 6px; font-weight: 600; transition: background-color 0.2s;">📦 Go to KitoIP Releases Page</a>
+        </div>
+
+        <p style="font-size: 1.1rem;"><strong>Step-by-step for beginners:</strong></p>
+        <ol style="font-size: 1.1rem; padding-left: 2rem; margin-top: 0.5rem;">
+            <li>Click the blue button above or any download button on this page.</li>
+            <li>You will be taken to the KitoIP Releases page on GitHub. This is the official download source.</li>
+            <li>Look for the asset named <strong>KitoIP.ps1</strong> or <strong>KitoIP.zip</strong> (depending on the latest release). Click it to download.</li>
+            <li>Make sure the file is in your <strong>Downloads</strong> folder or anywhere you can easily find it.</li>
+            <li>Right-click on the downloaded file and select <strong>Run with PowerShell</strong> (if you download the .ps1 file).</li>
+            <li>If you download a .zip file, right-click and choose <strong>Extract All</strong>, then open the extracted folder and right-click the .ps1 file inside and select <strong>Run with PowerShell</strong>.</li>
+            <li>If Windows shows a blue popup saying "Windows protected your PC", click <strong>More info</strong> and then <strong>Run anyway</strong>. This is because the script is not yet well-known to Windows.</li>
+            <li>The terminal window will open. Follow the simple on-screen prompts to choose one of the three IP-changing methods.</li>
+        </ol>
+
+        <div style="background-color: #fff7e6; padding: 1.2rem; border-radius: 8px; border-left: 5px solid #f5a623; margin: 2rem 0;">
+            <strong>💡 Important for Windows Security:</strong> Windows might warn you about running scripts. This is normal. To allow it, open PowerShell as Administrator (right-click the Start button, select "Terminal (Admin)" or "Windows PowerShell (Admin)") and type this command once: <code style="background: #eee; padding: 2px 6px; border-radius: 4px;">Set-ExecutionPolicy RemoteSigned -Scope CurrentUser</code> Then press Enter and type Y to confirm. This just lets scripts you download run on your computer.
+        </div>
+
+        <h2 style="font-size: 2rem; color: #0f3460; border-bottom: 3px solid #e94560; padding-bottom: 0.5rem; margin-top: 2.5rem;">📖 Frequently Asked Questions (FAQ)</h2>
+
+        <div style="margin-bottom: 1rem;">
+            <h3 style="font-size: 1.2rem; color: #0f3460; margin-bottom: 0.3rem;">Is KitoIP safe to use?</h3>
+            <p style="font-size: 1.05rem;">Yes. KitoIP is an open-source project, meaning its code is publicly viewable. It does not collect any personal data, does not contain ads, and has no hidden functions. It only does what this page tells you: changes your IP in one of three ways.</p>
+        </div>
+
+        <div style="margin-bottom: 1rem;">
+            <h3 style="font-size: 1.2rem; color: #0f3460; margin-bottom: 0.3rem;">Do I need to install anything else?</h3>
+            <p style="font-size: 1.05rem;">No. KitoIP is pure PowerShell. If you use Windows 10 or Windows 11, you already have everything needed. There are zero extra downloads, no Java, no .NET framework to install separately, no drivers.</p>
+        </div>
+
+        <div style="margin-bottom: 1rem;">
+            <h3 style="font-size: 1.2rem; color: #0f3460; margin-bottom: 0.3rem;">Will this slow down my computer?</h3>
+            <p style="font-size: 1.05rem;">No. KitoIP only runs when you open it. It doesn't start automatically with Windows and doesn't run in the background. When you're done using it, close the terminal window and it's completely gone.</p>
+        </div>
+
+        <div style="margin-bottom: 1rem;">
+            <h3 style="font-size: 1.2rem; color: #0f3460; margin-bottom: 0.3rem;">What if I mess something up?</h3>
+            <p style="font-size: 1.05rem;">Don't worry! The LAN IP switcher has an option to automatically set everything back to automatic (DHCP). And you can always restart your computer to restore your network settings if needed. For the proxy and WARP options, closing the tool automatically stops the proxy or VPN connection.</p>
+        </div>
+
+        <h2 style="font-size: 2rem; color: #0f3460; border-bottom: 3px solid #e94560; padding-bottom: 0.5rem; margin-top: 2.5rem;">🔧 System Requirements</h2>
+        <ul style="font-size: 1.1rem; padding-left: 2rem;">
+            <li><strong>Operating System:</strong> Windows 10 (version 1809 or later) or Windows 11</li>
+            <li><strong>Architecture:</strong> 64-bit (x64) recommended; 32-bit works but not fully tested</li>
+            <li><strong>RAM:</strong> Minimum 4 GB (but KitoIP uses less than 100 MB)</li>
+            <li><strong>Internet:</strong> Required for changing public IP via proxy or WARP</li>
+            <li><strong>Disk Space:</strong> Less than 1 MB</li>
+            <li><strong>Permissions:</strong> Administrator rights needed only for LAN IP change and WARP installation</li>
+        </ul>
+
+        <h2 style="font-size: 2rem; color: #0f3460; border-bottom: 3px solid #e94560; padding-bottom: 0.5rem; margin-top: 2.5rem;">📚 Technical Details for Curious Users</h2>
+        <p style="font-size: 1.1
