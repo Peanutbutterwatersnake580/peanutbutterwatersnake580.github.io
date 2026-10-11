@@ -37,6 +37,12 @@ import {
 
 document.getElementById('need-js')?.remove();
 
+// The published page is one file. Register only that build, so the dev server
+// does not keep a worker around. updateViaCache skips a stale sw.js.
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' }).catch(() => {});
+}
+
 const FAR_KEY = 'kitten-cannon-best-ft';
 const HIGH_KEY = 'kitten-cannon-highest-ft';
 const FAST_KEY = 'kitten-cannon-fastest';
